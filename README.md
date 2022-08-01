@@ -1,5 +1,9 @@
 # Bash setup script for Ubuntu servers
-[![Build Status](https://travis-ci.org/jasonheecs/ubuntu-server-setup.svg?branch=master)](https://travis-ci.org/jasonheecs/ubuntu-server-setup)
+
+This is a fork of https://github.com/jasonheecs/ubuntu-server-setup.git.
+
+It is a work in progress.
+
 
 This is a setup script to automate the setup and provisioning of Ubuntu servers. It does the following:
 * Adds or updates a user account with sudo access
@@ -11,6 +15,8 @@ This is a setup script to automate the setup and provisioning of Ubuntu servers.
 * Setup the timezone for the server (Default to "Asia/Singapore")
 * Install Network Time Protocol
 
+
+
 # Installation
 SSH into your server and install git if it is not installed:
 ```bash
@@ -21,7 +27,7 @@ sudo apt-get install git
 Clone this repository into your home directory:
 ```bash
 cd ~
-git clone https://github.com/jasonheecs/ubuntu-server-setup.git
+git clone https://github.com/riffraph/ubuntu-server-setup.git
 ```
 
 Run the setup script

@@ -9,8 +9,11 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    # shellcheck source=./setupLibrary.sh
-    source "${current_dir}/setupLibrary.sh"
+    source "${current_dir}/utils.sh"
+    source "${current_dir}/setup-environment.sh"
+    source "${current_dir}/setup-ssh.sh"
+    source "${current_dir}/setup-network.sh"
+    source "${current_dir}/setup-media-server.sh"
 }
 
 current_dir=$(getCurrentDir)
@@ -18,44 +21,81 @@ includeDependencies
 output_file="output.log"
 
 function main() {
-    read -rp "Do you want to create a new non-root user? (Recommended) [Y/N] " createUser
-
     # Run setup functions
     trap cleanup EXIT SIGHUP SIGINT SIGTERM
 
-    if [[ $createUser == [nN] ]]; then
-        username=$(whoami)
-        updateUserAccount "${username}"
-    elif [[ $createUser == [yY] ]]; then
-        read -rp "Enter the username of the new user account: " username
-        addUserAccount "${username}"
-    else
-	echo 'This is not a valid choice!'
-	exit 1
-    fi
 
-    read -rp $'Paste in the public SSH key for the new user:\n' sshKey
-    echo 'Running setup script...'
-    logTimestamp "${output_file}"
-
-    exec 3>&1 >>"${output_file}" 2>&1
+    # 1. create user with sudo and home directory
+    # 2. set ssh port
+    # 3. set up public ssh key for the new user
+    # 3. disable IPv6
+    # 4. set up firewall
+    # 5. update apt packages and upgrade installed packages
+    # 6. install unzip
+    # 7. install zsh
+    # 8. install docker
+    # 9. set up docker network
+    # 10. set up rclone
+    # 11. set up dvr directory structure
+    # 12. get and run media server setup
 
 
+    # 1. create user account
+    echo "Setting up user account..." >&3
+    read -rp "Enter the username of the new user account: " username
+    addUserAccount "${username}"
     disableSudoPassword "${username}"
+
+    read -rp "Paste in the public SSH key for the ${username}:\n" sshKey
     addSSHKey "${username}" "${sshKey}"
-    changeSSHConfig
-    setupUfw
+    
+    # Update packages
+    echo "Updating packages..." >&3
+    apt update && apt upgrade && apt autoremove
+
+
+    # Set up ssh
+    echo "Configuring SSH..." >&3
+    read -rp "Enter the port for SSH to run on: " sshPort
+    changeSSHConfig "${sshPort}"
+    
+
+    # Configure system time
+    echo "Configuring system time... " >&3
+    read -rp "Enter the timezone (e.g. Europe/Berlin):" timezone
+    setupTimezone "${timezone}"
+    configureNTP
+
+
+    # Disable IP
+    echo "Disabling IPv6..." >&3
+    disableIPv6
+
+
+    # Set up firewall
+    echo "Configuring firewall... " >&3
+    setupFirewall "${sshPort}"
+    
+
+    echo "Restarting services..." >&3
+
+    sudo service ssh restart
+
+
+    # echo "Installing rclone..." >&3
+
+
+    # echo "Configuring directory structure..." >&3
+
+
+    # echo "Installing Docker..." >&3
+
+
+
 
     if ! hasSwap; then
         setupSwap
     fi
-
-    setupTimezone
-
-    echo "Configuring System Time... " >&3
-    configureNTP
-
-    sudo service ssh restart
 
     cleanup
 

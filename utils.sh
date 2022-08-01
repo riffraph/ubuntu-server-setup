@@ -55,8 +55,11 @@ function execAsUser() {
 # Modify the sshd_config file
 # shellcheck disable=2116
 function changeSSHConfig() {
+    local sshPort=${1}
+
     sudo sed -re 's/^(\#?)(PasswordAuthentication)([[:space:]]+)yes/\2\3no/' -i."$(echo 'old')" /etc/ssh/sshd_config
     sudo sed -re 's/^(\#?)(PermitRootLogin)([[:space:]]+)(.*)/PermitRootLogin no/' -i /etc/ssh/sshd_config
+    sudo sed -re 's/^(\#?)(Port)([[:space:]]+)(.*)/Port '"${sshPort}"'/' -i /etc/ssh/sshd_config
 }
 
 # Setup the Uncomplicated Firewall
@@ -164,4 +167,13 @@ function disableSudoPassword() {
 function revertSudoers() {
     sudo cp /etc/sudoers.bak /etc/sudoers
     sudo rm -rf /etc/sudoers.bak
+}
+
+function initFirewall()
+{
+    local sshPort=${1}
+
+    firewall-cmd --permanent --remove-service=dhcpv6-client
+    firewall-cmd --permanent --remove-service=ssh
+    firewall-cmd --permanent --add-port=${sshPort}/tcp
 }
