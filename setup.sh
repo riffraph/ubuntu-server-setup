@@ -11,8 +11,10 @@ function getCurrentDir() {
 function includeDependencies() {
     source "${current_dir}/utils.sh"
     source "${current_dir}/setup-environment.sh"
+    source "${current_dir}/setup-user.sh"
     source "${current_dir}/setup-ssh.sh"
     source "${current_dir}/setup-network.sh"
+    source "${current_dir}/setup-media-server.sh"
     source "${current_dir}/setup-media-server.sh"
 }
 
@@ -23,24 +25,28 @@ output_file="output.log"
 function main() {
     # Run setup functions
     trap cleanup EXIT SIGHUP SIGINT SIGTERM
+    
+
+    # 1. Configure system time
+    echo "Configuring timezone... " >&3
+    read -rp "Enter the timezone (default is 'Europe/Berlin'):" timezone
+    if [ -z "${timezone}" ]; then
+        timezone="Europe/Berlin"
+    fi
+    setTimezone "${timezone}"
+    echo "Timezone is set to $(cat /etc/timezone)" >&3
+
+    echo "Configuring network time protocol... " >&3
+    configureNTP
 
 
-    # 1. create user with sudo and home directory
-    # 2. set ssh port
-    # 3. set up public ssh key for the new user
-    # 3. disable IPv6
-    # 4. set up firewall
-    # 5. update apt packages and upgrade installed packages
-    # 6. install unzip
-    # 7. install zsh
-    # 8. install docker
-    # 9. set up docker network
-    # 10. set up rclone
-    # 11. set up dvr directory structure
-    # 12. get and run media server setup
+    # 2. Set up swap space
+    if ! hasSwap; then
+        setupSwap
+    fi
 
 
-    # 1. create user account
+    # 3. create user account
     echo "Setting up user account..." >&3
     read -rp "Enter the username of the new user account: " username
     addUserAccount "${username}"
@@ -49,38 +55,77 @@ function main() {
     read -rp "Paste in the public SSH key for the ${username}:\n" sshKey
     addSSHKey "${username}" "${sshKey}"
     
-    # Update packages
-    echo "Updating packages..." >&3
+    # 5. Update packages
+    echo "Updating package list and upgrade installed packages..." >&3
     apt update && apt upgrade && apt autoremove
 
 
-    # Set up ssh
+    # 6. Set up ssh
     echo "Configuring SSH..." >&3
     read -rp "Enter the port for SSH to run on: " sshPort
     changeSSHConfig "${sshPort}"
     
 
-    # Configure system time
-    echo "Configuring system time... " >&3
-    read -rp "Enter the timezone (e.g. Europe/Berlin):" timezone
-    setupTimezone "${timezone}"
-    configureNTP
-
-
-    # Disable IP
+    # 7. Disable IPv6
     echo "Disabling IPv6..." >&3
     disableIPv6
 
 
-    # Set up firewall
+    # 8. Set up firewall
     echo "Configuring firewall... " >&3
     setupFirewall "${sshPort}"
-    
+
+
+    # 9. install miscellaneous packages
+
+    echo "Installing misc packages..." >&3
+    apt install unzip zsh
+    installOhMyZsh
+    installDocker
+
 
     echo "Restarting services..." >&3
 
     sudo service ssh restart
 
+
+    # Prompt the user to select the server type
+    echo "Choose which server to set up. The options are;"
+    echo "1. As a test server"
+    echo "2. As a media server"
+    read -n 1 -rp  "Enter your choice (1 or 2, defaults to neither): " serverType
+
+    case ${serverType} in
+        '1')  
+            setupAsTestServer
+            ;;
+
+        '2')
+            setupAsMediaServer
+            ;;
+
+        *) # default
+            ;;
+    esac    
+
+
+    cleanup
+
+    echo "Setup Done! Log file is located at ${output_file}" >&3
+}
+
+function setupAsTestServer() {
+    # install vagrant
+    apt install vagrant
+}
+
+function setupAsMediaServer() {
+    # 9. set up docker network
+    # 10. set up rclone
+    # 11. set up dvr directory structure
+    # 12. get and run media server setup
+
+    # echo "Configuring docker network..." >&3
 
     # echo "Installing rclone..." >&3
 
@@ -89,29 +134,8 @@ function main() {
 
 
     # echo "Installing Docker..." >&3
-
-
-
-
-    if ! hasSwap; then
-        setupSwap
-    fi
-
-    cleanup
-
-    echo "Setup Done! Log file is located at ${output_file}" >&3
 }
 
-function setupSwap() {
-    createSwap
-    mountSwap
-    tweakSwapSettings "10" "50"
-    saveSwapSettings "10" "50"
-}
-
-function hasSwap() {
-    [[ "$(sudo swapon -s)" == *"/swapfile"* ]]
-}
 
 function cleanup() {
     if [[ -f "/etc/sudoers.bak" ]]; then
@@ -128,14 +152,5 @@ function logTimestamp() {
     } >>"${filename}" 2>&1
 }
 
-function setupTimezone() {
-    echo -ne "Enter the timezone for the server (Default is 'Asia/Singapore'):\n" >&3
-    read -r timezone
-    if [ -z "${timezone}" ]; then
-        timezone="Asia/Singapore"
-    fi
-    setTimezone "${timezone}"
-    echo "Timezone is set to $(cat /etc/timezone)" >&3
-}
 
 main

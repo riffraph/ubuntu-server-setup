@@ -33,7 +33,7 @@ git clone https://github.com/riffraph/ubuntu-server-setup.git
 Run the setup script
 ```bash
 cd ubuntu-server-setup
-bash setup.sh
+sudo bash setup.sh
 ```
 
 # Setup prompts

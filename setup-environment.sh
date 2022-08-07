@@ -1,5 +1,27 @@
 #!/bin/sh
 
+function setupSwap() {
+    createSwap
+    mountSwap
+    tweakSwapSettings "10" "50"
+    saveSwapSettings "10" "50"
+}
+
+function hasSwap() {
+    [[ "$(sudo swapon -s)" == *"/swapfile"* ]]
+}
+
+# Gets the amount of physical memory in GB (rounded up) installed on the machine
+function getPhysicalMemory() {
+    local phymem
+    phymem="$(free -g|awk '/^Mem:/{print $2}')"
+    
+    if [[ ${phymem} == '0' ]]; then
+        echo 1
+    else
+        echo "${phymem}"
+    fi
+}
 
 # Create the swap file based on amount of physical memory on machine (Maximum size of swap is 4GB)
 function createSwap() {
@@ -69,7 +91,6 @@ function configureNTP() {
     if [[ $(bc -l <<< "${ubuntu_version} >= 20.04") -eq 1 ]]; then
         sudo systemctl restart systemd-timesyncd
     else
-        sudo apt-get update
         sudo apt-get --assume-yes install ntp
         
         # force NTP to sync
