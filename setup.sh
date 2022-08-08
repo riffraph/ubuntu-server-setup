@@ -14,7 +14,7 @@ function includeDependencies() {
     source "${currentDir}/setup-user.sh"
     source "${currentDir}/setup-ssh.sh"
     source "${currentDir}/setup-network.sh"
-    source "${currentDir}/setup-media-server.sh"
+    source "${currentDir}/setup-misc-packages.sh"
     source "${currentDir}/setup-media-server.sh"
 }
 
@@ -73,7 +73,6 @@ function main() {
     read -rp "Enter the port for SSH to run on: " sshPort
     changeSSHConfig "${sshPort}"
     
-    
 
     # 7. Disable IPv6
     printAndLog "Disabling IPv6..." 
@@ -88,16 +87,17 @@ function main() {
     # 9. install miscellaneous packages
 
     printAndLog "Installing misc packages..." 
-    printAndLog "-- Installing unzip & zsh..."
-    apt install unzip zsh
-    printAndLog "-- Installing OhMyZsh..."
-    installOhMyZsh
+    printAndLog "-- Installing unzip..."
+    apt install unzip 
+    
     printAndLog "-- Installing Docker engine..."
     installDocker
 
+    # printAndLog "-- Installing Zsh..."
+    # setupZsh
+    
 
     printAndLog "Restarting services..." 
-    
 
 
     # Prompt the user to select the server type
