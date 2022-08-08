@@ -45,6 +45,18 @@ function addSSHKey() {
 }
 
 
+function instructUserToAddSSHKey() {
+    local username=${1}
+    local host=${2}
+    local sshPort=${3}
+
+    echo ""
+    echo "Run the following command on the machine you want to connect from:"
+    echo "      ssh-copy-id -i ~/.ssh/id_rsa.pub -p ${sshPort} ${username}@${host}"
+    echo ""
+}
+
+
 # Disables the sudo password prompt for a user account by editing /etc/sudoers
 # Arguments:
 #   Account username

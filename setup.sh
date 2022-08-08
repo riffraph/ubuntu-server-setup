@@ -33,7 +33,7 @@ function main() {
     logTimestamp ${logFile}
 
 
-    # 1. Configure system time
+    # Configure system time
     printAndLog "Configuring timezone... "
     read -rp "Enter the timezone (default is 'Europe/Berlin'):" timezone
     if [ -z "${timezone}" ]; then
@@ -46,45 +46,36 @@ function main() {
     configureNTP
 
 
-    # 2. Set up swap space
+    # Set up swap space
     if ! hasSwap; then
         setupSwap
     fi
 
-
-    # 3. create user account
-    printAndLog "Setting up user account..." 
-    read -rp "Enter the username of the new user account: " username
-    addUserAccount "${username}" "true"
-    disableSudoPassword "${username}"
-
-    read -rp "Paste in the public SSH key for the ${username}: " sshKey
-    addSSHKey "${username}" "${sshKey}"
     
-    # 5. Update packages
+    # Update packages
     printAndLog "Updating package list and upgrade installed packages..." 
     apt update
     yes Y | apt upgrade
     apt autoremove
 
 
-    # 6. Set up ssh
+    # Set up ssh
     printAndLog "Configuring SSH..." 
     read -rp "Enter the port for SSH to run on: " sshPort
     changeSSHConfig "${sshPort}"
     
 
-    # 7. Disable IPv6
+    # Disable IPv6
     printAndLog "Disabling IPv6..." 
     disableIPv6
 
 
-    # 8. Set up firewall
+    # Set up firewall
     printAndLog "Configuring firewall... " 
     setupFirewall "${sshPort}"
 
 
-    # 9. install miscellaneous packages
+    # Install miscellaneous packages
 
     printAndLog "Installing misc packages..." 
     printAndLog "-- Installing unzip..."
@@ -93,11 +84,20 @@ function main() {
     printAndLog "-- Installing Docker engine..."
     installDocker
 
+
+    # Create user account
+    printAndLog "Setting up user account..." 
+    read -rp "Enter the username of the new user account: " username
+    addUserAccount "${username}" "true"
+    disableSudoPassword "${username}"
+
+    read -rp "Paste in the public SSH key for the ${username}: " sshKey
+    instructUserToAddSSHKey "${username}" "${host}" "${sshPort}"
+
+
     # printAndLog "-- Installing Zsh..."
     # setupZsh
-    
 
-    printAndLog "Restarting services..." 
 
 
     # Prompt the user to select the server type
