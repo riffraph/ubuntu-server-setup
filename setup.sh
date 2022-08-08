@@ -27,7 +27,7 @@ function main() {
     trap cleanup EXIT SIGHUP SIGINT SIGTERM
 
     # create fd 3, redirect stdout and stderr to the log 
-    exec 3>&1 1>>${logFile} 2>&1
+    exec 3>&1 2>&1 1>>${logFile}
 
     resetLog ${logFile}
     logTimestamp ${logFile}
