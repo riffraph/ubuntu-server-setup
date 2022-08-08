@@ -11,16 +11,16 @@ while getopts "s" opt; do
 done
 
 function getCurrentDir() {
-    local current_dir="${BASH_SOURCE%/*}"
-    if [[ ! -d "${current_dir}" ]]; then current_dir="$PWD"; fi
-    echo "${current_dir}"
+    local currentDir="${BASH_SOURCE%/*}"
+    if [[ ! -d "${currentDir}" ]]; then currentDir="$PWD"; fi
+    echo "${currentDir}"
 }
 
-current_dir=$(getCurrentDir)
+currentDir=$(getCurrentDir)
 # shellcheck source=/dev/null
-source "${current_dir}/lib/bunit.shl"
+source "${currentDir}/lib/bunit.shl"
 # shellcheck source=/dev/null
-source "${current_dir}/../setupLibrary.sh"
+source "${currentDir}/../setupLibrary.sh"
 
 test_user_account=testuser
 

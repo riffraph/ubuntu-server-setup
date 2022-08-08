@@ -7,8 +7,8 @@
 function updateUserAccount() {
     local username=${1}
     
-    sudo passwd -d "${username}"
-    sudo usermod -aG sudo "${username}"
+    passwd -d "${username}"
+    usermod -aG sudo "${username}"
 }
 
 
@@ -21,13 +21,13 @@ function addUserAccount() {
     local silent_mode=${2}
 
     if [[ ${silent_mode} == "true" ]]; then
-        sudo adduser --disabled-password --gecos '' "${username}"
+        adduser --disabled-password --gecos '' "${username}"
     else
-        sudo adduser --disabled-password "${username}"
+        adduser --disabled-password "${username}"
     fi
 
-    sudo usermod -aG sudo "${username}"
-    sudo passwd -d "${username}"
+    usermod -aG sudo "${username}"
+    passwd -d "${username}"
 }
 
 
@@ -51,13 +51,13 @@ function addSSHKey() {
 function disableSudoPassword() {
     local username="${1}"
 
-    sudo cp /etc/sudoers /etc/sudoers.bak
-    sudo bash -c "echo '${1} ALL=(ALL) NOPASSWD: ALL' | (EDITOR='tee -a' visudo)"
+    cp /etc/sudoers /etc/sudoers.bak
+    bash -c "echo '${1} ALL=(ALL) NOPASSWD: ALL' | (EDITOR='tee -a' visudo)"
 }
 
 
 # Reverts the original /etc/sudoers file before this script is ran
 function revertSudoers() {
-    sudo cp /etc/sudoers.bak /etc/sudoers
-    sudo rm -rf /etc/sudoers.bak
+    cp /etc/sudoers.bak /etc/sudoers
+    rm -rf /etc/sudoers.bak
 }

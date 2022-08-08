@@ -6,7 +6,9 @@
 function changeSSHConfig() {
     local sshPort=${1}
 
-    sudo sed -re 's/^(\#?)(PasswordAuthentication)([[:space:]]+)yes/\2\3no/' -i."$(echo 'old')" /etc/ssh/sshd_config
-    sudo sed -re 's/^(\#?)(PermitRootLogin)([[:space:]]+)(.*)/PermitRootLogin no/' -i /etc/ssh/sshd_config
-    sudo sed -re 's/^(\#?)(Port)([[:space:]]+)(.*)/Port '"${sshPort}"'/' -i /etc/ssh/sshd_config
+    sed -re 's/^(\#?)(PasswordAuthentication)([[:space:]]+)yes/\2\3no/' -i."$(echo 'old')" /etc/ssh/sshd_config
+    sed -re 's/^(\#?)(PermitRootLogin)([[:space:]]+)(.*)/PermitRootLogin no/' -i /etc/ssh/sshd_config
+    sed -re 's/^(\#?)(Port)([[:space:]]+)(.*)/Port '"${sshPort}"'/' -i /etc/ssh/sshd_config
+
+    service ssh restart
 }
