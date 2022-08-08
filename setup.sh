@@ -92,7 +92,10 @@ function main() {
     disableSudoPassword "${username}"
 
     read -rp "Paste in the public SSH key for the ${username}: " sshKey
-    instructUserToAddSSHKey "${username}" "${host}" "${sshPort}"
+    addSSHKey "${username}" "${sshKey}"
+
+    printAndLog "Run the following command on the machine you want to connect from:"
+    printAndLog "      ssh-copy-id -i ~/.ssh/id_rsa.pub -p ${sshPort} ${username}@${host}"
 
 
     # printAndLog "-- Installing Zsh..."
