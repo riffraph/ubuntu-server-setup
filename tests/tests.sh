@@ -8,9 +8,9 @@ set -ex
 ###
 
 function getCurrentDir() {
-    local current_dir="${BASH_SOURCE%/*}"
-    if [[ ! -d "${current_dir}" ]]; then current_dir="$PWD"; fi
-    echo "${current_dir}"
+    local currentDir="${BASH_SOURCE%/*}"
+    if [[ ! -d "${currentDir}" ]]; then currentDir="$PWD"; fi
+    echo "${currentDir}"
 }
 
 function runUnitTest() {
@@ -22,11 +22,11 @@ function runUnitTest() {
     rm -rf "Vagrantfile"
 }
 
-current_dir=$(getCurrentDir)
+currentDir=$(getCurrentDir)
 
-for file in "${current_dir}"/Vagrant/*; do
+for file in "${currentDir}"/Vagrant/*; do
     filename=$(basename "${file}")
-    cp "${current_dir}/Vagrant/${filename}" "${current_dir}/../Vagrantfile"
-    cd "${current_dir}/../"
+    cp "${currentDir}/Vagrant/${filename}" "${currentDir}/../Vagrantfile"
+    cd "${currentDir}/../"
     runUnitTest "${filename}"
 done
