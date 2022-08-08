@@ -27,8 +27,9 @@ sudo apt-get install git
 Clone this repository into your home directory:
 ```bash
 cd ~
-chmod g+x *.sh
 git clone https://github.com/riffraph/ubuntu-server-setup.git
+cd ubuntu-server-setup
+chmod g+x *.sh
 ```
 
 Run the setup script

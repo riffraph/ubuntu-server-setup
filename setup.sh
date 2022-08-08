@@ -55,15 +55,17 @@ function main() {
     # 3. create user account
     printAndLog "Setting up user account..." 
     read -rp "Enter the username of the new user account: " username
-    addUserAccount "${username}"
+    addUserAccount "${username}" "true"
     disableSudoPassword "${username}"
 
-    read -rp "Paste in the public SSH key for the ${username}:\n" sshKey
+    read -rp "Paste in the public SSH key for the ${username}: " sshKey
     addSSHKey "${username}" "${sshKey}"
     
     # 5. Update packages
     printAndLog "Updating package list and upgrade installed packages..." 
-    apt update && apt upgrade && apt autoremove
+    apt update
+    yes Y | apt upgrade
+    apt autoremove
 
 
     # 6. Set up ssh
