@@ -16,6 +16,7 @@ function includeDependencies() {
     source "${currentDir}/setup-network.sh"
     source "${currentDir}/setup-misc-packages.sh"
     source "${currentDir}/setup-media-server.sh"
+    source "${currentDir}/setup-personalisation.sh"
 }
 
 currentDir=$(getCurrentDir)
@@ -31,6 +32,17 @@ function main() {
 
     resetLog ${logFile}
     logTimestamp ${logFile}
+
+
+    # Create user account
+    printAndLog "Setting up user account..." 
+    read -rp "Enter the username of the new user account: " username
+    addUserAccount "${username}" "true"
+    disableSudoPassword "${username}"
+
+    printAndLog "You will not be able to connect via SSH with a username and password!"
+    read -rp "Paste in the public SSH key for ${username}: " sshKey
+    addSSHKey "${username}" "${sshKey}"
 
 
     # Configure system time
@@ -75,7 +87,7 @@ function main() {
     setupFirewall "${sshPort}"
 
 
-    # Install miscellaneous packages
+    # Install utility packages
 
     printAndLog "Installing misc packages..." 
     printAndLog "-- Installing unzip..."
@@ -85,22 +97,9 @@ function main() {
     installDocker
 
 
-    # Create user account
-    printAndLog "Setting up user account..." 
-    read -rp "Enter the username of the new user account: " username
-    addUserAccount "${username}" "true"
-    disableSudoPassword "${username}"
-
-    read -rp "Paste in the public SSH key for the ${username}: " sshKey
-    addSSHKey "${username}" "${sshKey}"
-
-    printAndLog "Run the following command on the machine you want to connect from:"
-    printAndLog "      ssh-copy-id -i ~/.ssh/id_rsa.pub -p ${sshPort} ${username}@${host}"
-
-
+    # Add personal touches
     # printAndLog "-- Installing Zsh..."
     # setupZsh
-
 
 
     # Prompt the user to select the server type
@@ -125,7 +124,6 @@ function main() {
 
     cleanup
 
-    printAndLog ""
     printAndLog "Setup Done! Log file is located at ${logFile}"
 }
 

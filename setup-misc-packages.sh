@@ -1,12 +1,5 @@
 #!/bin/bash
 
-function setupZsh() {
-    apt install zsh
-
-    # from https://ohmyz.sh/#install
-    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-}
-
 function installDocker() {
     # following the "Install using the repository method"
     
@@ -21,5 +14,5 @@ function installDocker() {
 
     # install docker engine
     apt update
-    yes Y | apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    yes Y |apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 }
