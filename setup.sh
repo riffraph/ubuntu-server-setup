@@ -130,25 +130,40 @@ function main() {
 function setupAsTestServer() {
     # install vagrant
     printAndLog "Installing Vagrant..."
-    apt install vagrant
+    yes Y | apt install vagrant virtualbox virtualbox-ext-pack
 }
 
 function setupAsMediaServer() {
-    # 9. set up docker network
-    # 10. set up rclone
-    # 11. set up dvr directory structure
-    # 12. get and run media server setup
-
-    # echo "Configuring docker network..." >&3
-
-    # echo "Installing rclone..." >&3
+    printAndLog "Configuring docker network..."
+    read -rp "Enter the name of the external network interface (e.g. eth0): " externalNetworkInterface
+    createDockerNetwork ${externalNetworkInterface}
 
 
-    # echo "Configuring directory structure..." >&3
+    printAndLog "Create users, groups and directory structure..."
+    mediaGroup="media"
+    downloaderGroup="downloader"
+    plexUsername="plex"
+    sonarrUsername="sonarr"
+    nzbgetUsername="nzbget"
+    createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${nzbgetUsername}
+    
 
+    printAndLog "Installing rclone... TODO"
+    
 
-    # echo "Installing Docker..." >&3
-    echo "not implemented"
+    printAndLog "Install and run media server apps..."
+    read -rp "Enter your Plex claim: " plexClaim
+
+    plexUID=$(id -u ${plexUsername})
+    plexGID=$(id -g ${mediaGroup})
+    sonarrUID=$(id -u ${sonarrUsername})
+    sonarrGID=$(id -g ${downloaderGroup})
+    nzbgetUID=$(id -u ${nzbgetUsername})
+    nzbgetGID=$(id -g ${downloaderGroup})
+    composeFile="media-server-docker-compose.yaml"
+
+    prepCompose ${composeFile} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
+    docker compose -f ${composeFile} up    
 }
 
 
