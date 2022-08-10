@@ -3,6 +3,7 @@
 # create network for the media server
 function createDockerNetwork() {
     local externalNetworkInterface=${1}
+    local networkName=${2}
 
     docker network create \
     -d macvlan \
@@ -10,7 +11,7 @@ function createDockerNetwork() {
     --gateway=192.168.86.1 \
     --ip-range=192.168.86.30/30 \
     -o parent=${externalNetworkInterface} \
-    media-network
+    ${networkName}
 }
 
 function createUsersAndDirectoryStructure() {
@@ -20,7 +21,7 @@ function createUsersAndDirectoryStructure() {
     local sonarrUsername=${4}
     local nzbgetUsername=${5}
 
-        # create groups
+    # create groups
     groupadd -g 1002 ${downloaderGroup}
     groupadd -g 1003 ${mediaGroup}
 
@@ -29,9 +30,6 @@ function createUsersAndDirectoryStructure() {
     useradd -U ${sonarrUsername} -G ${downloaderGroup}
     usermod -a -G ${mediaGroup} ${sonarrUsername}
     useradd -U ${plexUsername} -G ${mediaGroup}
-
-
-    printAndLog "Configuring directory structure..."
     
     # create folders
     mkdir /downloads
@@ -49,6 +47,7 @@ function createUsersAndDirectoryStructure() {
     chown -R ${sonarrUsername}.${sonarrUsername} /serverapps/sonarr
     chown -R ${plexUsername}.${plexUsername} /serverapps/plex
 
+
     scheduleUpdateOfPermissions ${plexUsername} ${mediaGroup}
 }
 
@@ -56,33 +55,30 @@ function scheduleUpdateOfPermissions() {
     local plexUsername=${1}
     local plexGroup=${2}
 
-    crontab -l > _tmp_crontab
-
     # finds files which are not 664 permission and fixes them
-    echo "find /dvr -type f \! -perm 664 -exec chmod 664 {} \;" >> _tmp_crontab
+    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type f \! -perm 664 -exec chmod 664 {} \;") | crontab -u ${plexUsername} -
 
     # finds directories which are not 777 and fixes them
-    echo "find /dvr -type d \! -perm 775 -exec chmod 775 {} \;" >> _tmp_crontab
+    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type d \! -perm 775 -exec chmod 775 {} \;") | crontab -u ${plexUsername} -
 
     # finds anything not owned by plex and fixes them
-    echo "find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;" >> _tmp_crontab
-
-    crontab _tmp_crontab
-    rm _tmp_crontab
+    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;") | crontab -u ${plexUsername} -
 }
 
 function prepCompose() {
     local composeFile=${1}
-    local timezone=${2} 
-    local plexUID=${3} 
-    local plexGID=${4} 
-    local plexClaim=${5}  
-    local sonarrUID=${6}  
-    local sonarrGID=${7}  
-    local nzbgetUID=${8}  
-    local nzbgetGID=${9} 
+    local networkName=${2}
+    local timezone=${3} 
+    local plexUID=${4} 
+    local plexGID=${5} 
+    local plexClaim=${6}  
+    local sonarrUID=${7}  
+    local sonarrGID=${8}  
+    local nzbgetUID=${9}  
+    local nzbgetGID=${10} 
 
     sed -re "s/_timezone_/${timezone}/g" -i ${composeFile}
+    sed -re "s/_networkname_/${networkName}/g" -i ${composeFile}
     sed -re "s/_plexuid_/${plexUID}/g" -i ${composeFile}
     sed -re "s/_plexgid_/${plexGID}/g" -i ${composeFile}
     sed -re "s/_plexclaim_/${plexClaim}/g" -i ${composeFile}

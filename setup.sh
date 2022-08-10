@@ -136,7 +136,8 @@ function setupAsTestServer() {
 function setupAsMediaServer() {
     printAndLog "Configuring docker network..."
     read -rp "Enter the name of the external network interface (e.g. eth0): " externalNetworkInterface
-    createDockerNetwork ${externalNetworkInterface}
+    networkName="media-network"
+    createDockerNetwork ${externalNetworkInterface} ${networkName}
 
 
     printAndLog "Create users, groups and directory structure..."
@@ -162,7 +163,7 @@ function setupAsMediaServer() {
     nzbgetGID=$(id -g ${downloaderGroup})
     composeFile="media-server-docker-compose.yaml"
 
-    prepCompose ${composeFile} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
+    prepCompose ${composeFile} ${networkName} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
     docker compose -f ${composeFile} up    
 }
 
