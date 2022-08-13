@@ -134,12 +134,6 @@ function setupAsTestServer() {
 }
 
 function setupAsMediaServer() {
-    printAndLog "Configuring docker network..."
-    read -rp "Enter the name of the external network interface (e.g. eth0): " externalNetworkInterface
-    networkName="media-network"
-    createDockerNetwork ${externalNetworkInterface} ${networkName}
-
-
     printAndLog "Create users, groups and directory structure..."
     mediaGroup="media"
     downloaderGroup="downloader"
@@ -148,6 +142,8 @@ function setupAsMediaServer() {
     nzbgetUsername="nzbget"
     createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${nzbgetUsername}
     
+    printAndLog "Configuring docker network..."
+    createDockerNetwork ${mediaGroup} ${downloaderGroup}
 
     printAndLog "Installing rclone... TODO"
     
@@ -163,7 +159,7 @@ function setupAsMediaServer() {
     nzbgetGID=$(id -g ${downloaderGroup})
     composeFile="media-server-docker-compose.yaml"
 
-    prepCompose ${composeFile} ${networkName} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
+    prepCompose ${composeFile} ${mediaGroup} ${downloaderGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
     docker compose -f ${composeFile} up    
 }
 

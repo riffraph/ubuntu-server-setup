@@ -2,16 +2,11 @@
 
 # create network for the media server
 function createDockerNetwork() {
-    local externalNetworkInterface=${1}
-    local networkName=${2}
+    local mediaNetwork=${1}
+    local downloaderNetwork=${2}
 
-    docker network create \
-    -d macvlan \
-    --subnet=192.168.86.0/24 \
-    --gateway=192.168.86.1 \
-    --ip-range=192.168.86.30/30 \
-    -o parent=${externalNetworkInterface} \
-    ${networkName}
+    docker network create --driver bridge ${mediaNetwork}
+    docker network create --driver bridge ${downloaderNetwork}
 }
 
 function createUsersAndDirectoryStructure() {
@@ -67,18 +62,20 @@ function scheduleUpdateOfPermissions() {
 
 function prepCompose() {
     local composeFile=${1}
-    local networkName=${2}
-    local timezone=${3} 
-    local plexUID=${4} 
-    local plexGID=${5} 
-    local plexClaim=${6}  
-    local sonarrUID=${7}  
-    local sonarrGID=${8}  
-    local nzbgetUID=${9}  
-    local nzbgetGID=${10} 
+    local mediaNetwork=${2}
+    local downloaderNetwork=${3}
+    local timezone=${4} 
+    local plexUID=${5} 
+    local plexGID=${6} 
+    local plexClaim=${7}  
+    local sonarrUID=${8}  
+    local sonarrGID=${9}  
+    local nzbgetUID=${10}  
+    local nzbgetGID=${11} 
 
     sed -re "s/_timezone_/${timezone}/g" -i ${composeFile}
-    sed -re "s/_networkname_/${networkName}/g" -i ${composeFile}
+    sed -re "s/_medianetwork_/${mediaNetwork}/g" -i ${composeFile}
+    sed -re "s/_downloadernetwork_/${downloaderNetwork}/g" -i ${composeFile}
     sed -re "s/_plexuid_/${plexUID}/g" -i ${composeFile}
     sed -re "s/_plexgid_/${plexGID}/g" -i ${composeFile}
     sed -re "s/_plexclaim_/${plexClaim}/g" -i ${composeFile}

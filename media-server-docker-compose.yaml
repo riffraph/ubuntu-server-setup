@@ -16,6 +16,8 @@ services:
       PUID: _nzbgetuid_
       PGID: _nzbgetgid_
     restart: unless-stopped
+    networks:
+      - downloader
 
   sonarr:
     container_name: sonarr
@@ -34,6 +36,8 @@ services:
       TZ: _timezone_
       UMASK_SET: 022
     restart: unless-stopped
+    networks:
+      - downloader
 
   plex:
     container_name: plex
@@ -60,7 +64,11 @@ services:
       PLEX_UID: _plexuid_
       PLEX_GID: _plexgid_
     restart: unless-stopped
+    networks:
+      - media
 
 networks:
-  default:
-    name: _networkname_
+  media:
+    name: _medianetwork_
+  downloader:
+    name: _downloadernetwork_
