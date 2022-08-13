@@ -152,11 +152,11 @@ function setupAsMediaServer() {
     read -rp "Enter your Plex claim: " plexClaim
 
     plexUID=$(id -u ${plexUsername})
-    plexGID=$(id -g ${mediaGroup})
+    plexGID=$(getent group ${mediaGroup} | cut -d: -f3)
     sonarrUID=$(id -u ${sonarrUsername})
-    sonarrGID=$(id -g ${downloaderGroup})
+    sonarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
     nzbgetUID=$(id -u ${nzbgetUsername})
-    nzbgetGID=$(id -g ${downloaderGroup})
+    nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
     composeFile="media-server-docker-compose.yaml"
 
     prepCompose ${composeFile} ${mediaGroup} ${downloaderGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
