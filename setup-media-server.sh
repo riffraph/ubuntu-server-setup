@@ -60,27 +60,41 @@ function scheduleUpdateOfPermissions() {
     (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;") | crontab -u ${plexUsername} -
 }
 
-function prepCompose() {
+function prepMediaCompose() {
     local composeFile=${1}
     local mediaNetwork=${2}
-    local downloaderNetwork=${3}
-    local timezone=${4} 
-    local plexUID=${5} 
-    local plexGID=${6} 
-    local plexClaim=${7}  
-    local sonarrUID=${8}  
-    local sonarrGID=${9}  
-    local nzbgetUID=${10}  
-    local nzbgetGID=${11} 
+    local timezone=${3} 
+    local plexUID=${4} 
+    local plexGID=${5} 
+    local plexClaim=${6}  
 
     sed -re "s/_timezone_/${timezone}/g" -i ${composeFile}
     sed -re "s/_medianetwork_/${mediaNetwork}/g" -i ${composeFile}
-    sed -re "s/_downloadernetwork_/${downloaderNetwork}/g" -i ${composeFile}
     sed -re "s/_plexuid_/${plexUID}/g" -i ${composeFile}
     sed -re "s/_plexgid_/${plexGID}/g" -i ${composeFile}
     sed -re "s/_plexclaim_/${plexClaim}/g" -i ${composeFile}
+}
+
+
+function prepDownloaderCompose() {
+    local composeFile=${1}
+    local downloaderNetwork=${2}
+    local timezone=${3} 
+    local sonarrUID=${4}  
+    local sonarrGID=${5}  
+    local nzbgetUID=${6}  
+    local nzbgetGID=${7} 
+
+    sed -re "s/_timezone_/${timezone}/g" -i ${composeFile}
+    sed -re "s/_downloadernetwork_/${downloaderNetwork}/g" -i ${composeFile}
     sed -re "s/_sonarruid_/${sonarrUID}/g" -i ${composeFile}
     sed -re "s/_sonarrgid_/${sonarrGID}/g" -i ${composeFile}
     sed -re "s/_nzbgetuid_/${nzbgetUID}/g" -i ${composeFile}
     sed -re "s/_nzbgetgid_/${nzbgetGID}/g" -i ${composeFile}
+}
+
+
+function updateFirewall() {
+    # plex
+    echo "not implemented"
 }

@@ -157,10 +157,17 @@ function setupAsMediaServer() {
     sonarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
     nzbgetUID=$(id -u ${nzbgetUsername})
     nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
-    composeFile="media-server-docker-compose.yaml"
 
-    prepCompose ${composeFile} ${mediaGroup} ${downloaderGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
-    docker compose -f ${composeFile} up    
+    mediaComposeFile="media-docker-compose.yaml"
+    prepMediaCompose ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim}
+
+    docker compose -f ${mediaComposeFile} up
+
+
+    downloaderComposeFile="downloader-docker-compose.yaml"
+    prepDownloaderCompose ${downloaderComposeFile} ${downloaderGroup} ${timezone} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
+
+    docker compose -f ${downloaderComposeFile} up
 }
 
 
