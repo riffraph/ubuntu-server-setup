@@ -161,12 +161,10 @@ function setupAsMediaServer() {
     mediaComposeFile="media-docker-compose.yaml"
     prepMediaCompose ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim}
 
-    docker compose -f ${mediaComposeFile} up
-
-
     downloaderComposeFile="downloader-docker-compose.yaml"
     prepDownloaderCompose ${downloaderComposeFile} ${downloaderGroup} ${timezone} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
 
+    docker compose -f ${mediaComposeFile} up
     docker compose -f ${downloaderComposeFile} up
 }
 
