@@ -17,8 +17,8 @@ function createUsersAndDirectoryStructure() {
     local nzbgetUsername=${5}
 
     # create groups
-    groupadd -g 1002 ${downloaderGroup}
-    groupadd -g 1003 ${mediaGroup}
+    groupadd -f ${downloaderGroup}
+    groupadd -f ${mediaGroup}
 
     # create users
     useradd -U ${nzbgetUsername} -G ${downloaderGroup}
