@@ -9,13 +9,13 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/utils.sh"
-    source "${currentDir}/setup-environment.sh"
-    source "${currentDir}/setup-user.sh"
-    source "${currentDir}/setup-ssh.sh"
-    source "${currentDir}/setup-network.sh"
-    source "${currentDir}/setup-misc-packages.sh"
-    source "${currentDir}/setup-personalisation.sh"
+    source "${currentDir}/_utils.sh"
+    source "${currentDir}/_setup-environment.sh"
+    source "${currentDir}/_setup-user.sh"
+    source "${currentDir}/_setup-ssh.sh"
+    source "${currentDir}/_setup-network.sh"
+    source "${currentDir}/_setup-misc-packages.sh"
+    source "${currentDir}/_setup-personalisation.sh"
 }
 
 currentDir=$(getCurrentDir)

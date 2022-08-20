@@ -9,7 +9,7 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/utils.sh"
+    source "${currentDir}/_utils.sh"
 }
 
 currentDir=$(getCurrentDir)

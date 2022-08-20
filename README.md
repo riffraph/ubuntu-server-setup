@@ -25,7 +25,7 @@ cd /
 git clone https://github.com/riffraph/ubuntu-server-setup.git
 cd ubuntu-server-setup
 chmod g+x *.sh
-sudo setup-base.sh
+sudo ./setup-base.sh
 ```
 
 
