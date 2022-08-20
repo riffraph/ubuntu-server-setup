@@ -27,6 +27,7 @@ function resetLog() {
     printf '' > ${filename}
 }
 
+
 function logTimestamp() {
     local filename=${1}
     {
@@ -36,9 +37,17 @@ function logTimestamp() {
     } >>"${filename}" 2>&1
 }
 
+
 function printAndLog() {
     local string=${1}
 
     # print to the terminal and add to the log which is bound file descriptor 3
     echo ${1} | tee /dev/fd/3
+}
+
+
+# get timezone
+function getTimezone() {
+    local timezone=$(cat /etc/timezone)
+    echo $timezone
 }

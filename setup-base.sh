@@ -15,13 +15,14 @@ function includeDependencies() {
     source "${currentDir}/setup-ssh.sh"
     source "${currentDir}/setup-network.sh"
     source "${currentDir}/setup-misc-packages.sh"
-    source "${currentDir}/setup-media-server.sh"
     source "${currentDir}/setup-personalisation.sh"
 }
 
 currentDir=$(getCurrentDir)
 includeDependencies
-logFile="output.log"
+logFile=$(basename $0) 
+logFile+=".log"
+
 
 function main() {
     # Run setup functions
@@ -102,70 +103,9 @@ function main() {
     # setupZsh
 
 
-    # Prompt the user to select the server type
-    printAndLog "Choose which server to set up. The options are;"
-    printAndLog "1. As a test server"
-    printAndLog "2. As a media server"
-    read -n 1 -rp  "Enter your choice (1 or 2, defaults to neither): " serverType
-
-    case ${serverType} in
-        '1')  
-            setupAsTestServer
-            ;;
-
-        '2')
-            setupAsMediaServer
-            ;;
-
-        *) # default
-            ;;
-    esac    
-
-
     cleanup
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
-}
-
-function setupAsTestServer() {
-    # install vagrant
-    printAndLog "Installing Vagrant..."
-    yes Y | apt install vagrant virtualbox virtualbox-ext-pack
-}
-
-function setupAsMediaServer() {
-    printAndLog "Create users, groups and directory structure..."
-    mediaGroup="media"
-    downloaderGroup="downloader"
-    plexUsername="plex"
-    sonarrUsername="sonarr"
-    nzbgetUsername="nzbget"
-    createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${nzbgetUsername}
-    
-    printAndLog "Configuring docker network..."
-    createDockerNetwork ${mediaGroup} ${downloaderGroup}
-
-    printAndLog "Installing rclone... TODO"
-    
-
-    printAndLog "Install and run media server apps..."
-    read -rp "Enter your Plex claim: " plexClaim
-
-    plexUID=$(id -u ${plexUsername})
-    plexGID=$(getent group ${mediaGroup} | cut -d: -f3)
-    sonarrUID=$(id -u ${sonarrUsername})
-    sonarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
-    nzbgetUID=$(id -u ${nzbgetUsername})
-    nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
-
-    mediaComposeFile="media-docker-compose.yaml"
-    prepMediaCompose ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim}
-
-    downloaderComposeFile="downloader-docker-compose.yaml"
-    prepDownloaderCompose ${downloaderComposeFile} ${downloaderGroup} ${timezone} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
-
-    docker compose -f ${mediaComposeFile} up
-    docker compose -f ${downloaderComposeFile} up
 }
 
 

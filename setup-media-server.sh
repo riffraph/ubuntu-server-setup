@@ -1,5 +1,72 @@
 #!/bin/bash
 
+set -e
+
+function getCurrentDir() {
+    local currentDir="${BASH_SOURCE%/*}"
+    if [[ ! -d "${currentDir}" ]]; then currentDir="$PWD"; fi
+    echo "${currentDir}"
+}
+
+function includeDependencies() {
+    source "${currentDir}/utils.sh"
+}
+
+currentDir=$(getCurrentDir)
+includeDependencies
+logFile=$(basename $0) 
+logFile+=".log"
+
+
+function main() {
+    # Run setup functions
+    trap cleanup EXIT SIGHUP SIGINT SIGTERM
+
+    # create fd 3, redirect stdout and stderr to the log 
+    exec 3>&1 2>&1 1>>${logFile}
+
+    resetLog ${logFile}
+    logTimestamp ${logFile}
+
+
+    printAndLog "Create users, groups and directory structure..."
+    mediaGroup="media"
+    downloaderGroup="downloader"
+    plexUsername="plex"
+    sonarrUsername="sonarr"
+    nzbgetUsername="nzbget"
+    createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${nzbgetUsername}
+    
+    printAndLog "Configuring docker network..."
+    createDockerNetwork ${mediaGroup} ${downloaderGroup}
+
+    printAndLog "Installing rclone... TODO"
+    
+
+    printAndLog "Install and run media server apps..."
+    read -rp "Enter your Plex claim: " plexClaim
+
+    plexUID=$(id -u ${plexUsername})
+    plexGID=$(getent group ${mediaGroup} | cut -d: -f3)
+    sonarrUID=$(id -u ${sonarrUsername})
+    sonarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
+    nzbgetUID=$(id -u ${nzbgetUsername})
+    nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
+
+    mediaComposeFile="media-docker-compose.yaml"
+    prepMediaCompose ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim}
+
+    downloaderComposeFile="downloader-docker-compose.yaml"
+    prepDownloaderCompose ${downloaderComposeFile} ${downloaderGroup} ${timezone} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
+
+    docker compose -f ${mediaComposeFile} up
+    docker compose -f ${downloaderComposeFile} up
+
+
+    printAndLog "Setup Done! Log file is located at ${logFile}"
+}
+
+
 # create network for the media server
 function createDockerNetwork() {
     local mediaNetwork=${1}
@@ -98,3 +165,6 @@ function updateFirewall() {
     # plex
     echo "not implemented"
 }
+
+
+main

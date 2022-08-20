@@ -10,33 +10,24 @@ This is a setup script to automate the setup and provisioning of Ubuntu servers.
 * Adds a public ssh key for the new user account
 * Disables password authentication to the server
 * Deny root login to the server
-* Setup Uncomplicated Firewall
+* Setup Firewall
 * Create Swap file based on machine's installed memory
-* Setup the timezone for the server (Default to "Asia/Singapore")
+* Setup the timezone for the server
 * Install Network Time Protocol
-
+* Install Docker engine
 
 
 # Installation
-SSH into your server and install git if it is not installed:
-```bash
-sudo apt-get update
-sudo apt-get install git
-```
 
-Clone this repository into your home directory:
+Clone this repository and run the base set up script:
 ```bash
-cd ~
+cd /
 git clone https://github.com/riffraph/ubuntu-server-setup.git
 cd ubuntu-server-setup
 chmod g+x *.sh
+sudo setup-base.sh
 ```
 
-Run the setup script
-```bash
-cd ubuntu-server-setup
-sudo bash setup.sh
-```
 
 # Setup prompts
 When the setup script is run, you will be prompted to enter the username of the new user account. 
@@ -47,7 +38,8 @@ ssh-keygen -t ed25519 -a 200 -C "user@server" -f ~/.ssh/user_server_ed25519
 cat ~/.ssh/user_server_ed25519.pub
 ```
 
-Finally, you will be prompted to specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for the server. It will be set to 'Asia/Singapore' if you do not specify a value.
+Finally, you will be prompted to specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for the server. 
+
 
 # Supported versions
 This setup script has been tested against Ubuntu 14.04, Ubuntu 16.04, Ubuntu 18.04, Ubuntu 20.04 and Ubuntu 22.04.
