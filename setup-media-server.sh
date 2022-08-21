@@ -20,7 +20,7 @@ logFile+=".log"
 
 function main() {
     # Run setup functions
-    trap cleanup EXIT SIGHUP SIGINT SIGTERM
+    trap EXIT SIGHUP SIGINT SIGTERM
 
     # create fd 3, redirect stdout and stderr to the log 
     exec 3>&1 2>&1 1>>${logFile}
@@ -136,7 +136,7 @@ function prepMediaCompose() {
     local plexGID=${5} 
     local plexClaim=${6}  
 
-    sed -re "s/_timezone_/${timezone}/g" -i ${composeFile}
+    sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
     sed -re "s/_medianetwork_/${mediaNetwork}/g" -i ${composeFile}
     sed -re "s/_plexuid_/${plexUID}/g" -i ${composeFile}
     sed -re "s/_plexgid_/${plexGID}/g" -i ${composeFile}
@@ -153,7 +153,7 @@ function prepDownloaderCompose() {
     local nzbgetUID=${6}  
     local nzbgetGID=${7} 
 
-    sed -re "s/_timezone_/${timezone}/g" -i ${composeFile}
+    sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
     sed -re "s/_downloadernetwork_/${downloaderNetwork}/g" -i ${composeFile}
     sed -re "s/_sonarruid_/${sonarrUID}/g" -i ${composeFile}
     sed -re "s/_sonarrgid_/${sonarrGID}/g" -i ${composeFile}
