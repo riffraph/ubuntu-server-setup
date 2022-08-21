@@ -52,6 +52,7 @@ function main() {
     sonarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
     nzbgetUID=$(id -u ${nzbgetUsername})
     nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
+    timezone=$(getTimezone)
 
     mediaComposeFile="media-docker-compose.yaml"
     prepMediaCompose ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim}
