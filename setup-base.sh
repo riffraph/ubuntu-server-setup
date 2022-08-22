@@ -67,8 +67,7 @@ function main() {
     
     # Update packages
     printAndLog "Updating package list and upgrade installed packages..." 
-    apt update
-    yes Y | apt upgrade
+    apt update && DEBIAN_FRONTEND=noninteractive apt upgrade -y
     apt autoremove
 
 
@@ -91,8 +90,7 @@ function main() {
     # Install utility packages
 
     printAndLog "Installing misc packages..." 
-    printAndLog "-- Installing unzip..."
-    apt install unzip 
+    DEBIAN_FRONTEND=noninteractive apt install -y unzip net-tools nmap
     
     printAndLog "-- Installing Docker engine..."
     installDocker

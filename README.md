@@ -47,3 +47,15 @@ This setup script has been tested against Ubuntu 14.04, Ubuntu 16.04, Ubuntu 18.
 # Running tests
 Tests are run against a set of Vagrant VMs. To run the tests, run the following in the project's directory:  
 `./tests/tests.sh`
+
+# Media Server
+
+## Prepare
+
+sudo ./setup-media-server.sh
+
+## Run
+
+'''bash 
+docker compose -f media-docker-compose.yaml up -d
+'''

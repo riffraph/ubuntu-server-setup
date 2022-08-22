@@ -35,7 +35,7 @@ function setupFirewall()
 {
     local sshPort=${1}
 
-    yes Y | apt install firewalld
+    apt install -y firewalld
 
     firewall-cmd --permanent --remove-service=dhcpv6-client
     firewall-cmd --permanent --remove-service=ssh

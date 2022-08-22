@@ -44,6 +44,10 @@ function main() {
     
 
     printAndLog "Install and run media server apps..."
+
+    read -rp "Enter the port to run Plex on: " plexPort
+    updateFirewall ${plexPort}
+
     read -rp "Enter your Plex claim: " plexClaim
 
     plexUID=$(id -u ${plexUsername})
@@ -59,9 +63,9 @@ function main() {
 
     downloaderComposeFile="downloader-docker-compose.yaml"
     prepDownloaderCompose ${downloaderComposeFile} ${downloaderGroup} ${timezone} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
-
-    docker compose -f ${mediaComposeFile} up
-    docker compose -f ${downloaderComposeFile} up
+    
+    docker compose -f ${mediaComposeFile} up -d
+    docker compose -f ${downloaderComposeFile} up -d
 
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
@@ -163,8 +167,10 @@ function prepDownloaderCompose() {
 
 
 function updateFirewall() {
-    # plex
-    echo "not implemented"
+    local plexPort=${1}
+    
+    firewall-cmd --permanent --add-forward-port=port=${plexPort}:proto=tcp:toaddr=127.0.0.1:toport=32400
+    firewall-cmd --reload 
 }
 
 
