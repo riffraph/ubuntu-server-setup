@@ -6,7 +6,7 @@ services:
     image: linuxserver/nzbget
     hostname: nzbget.server
     ports:
-      - 6789
+      - "127.0.0.1:6789:6789"
     volumes:
       - /serverapps/nzbget/config:/config
       - /serverapps/nzbget:/downloads
@@ -24,8 +24,8 @@ services:
     image: linuxserver/sonarr
     hostname: sonarr.server
     ports:
-      - 8989
-      - 9898
+      - "127.0.0.1:8989:8989"
+      - "127.0.0.1:9898:9898"
     volumes:
       - /serverapps/sonarr/config:/config
       - /dvr/tv:/tv
