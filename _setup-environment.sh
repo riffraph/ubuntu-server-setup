@@ -79,8 +79,8 @@ function setTimezone() {
     local timezone=${1}
     
     # echo "${1}" | sudo tee /etc/timezone
-    sudo ln -fs "/usr/share/zoneinfo/${timezone}" /etc/localtime # https://bugs.launchpad.net/ubuntu/+source/tzdata/+bug/1554806
-    sudo dpkg-reconfigure -f noninteractive tzdata
+    ln -fs "/usr/share/zoneinfo/${timezone}" /etc/localtime # https://bugs.launchpad.net/ubuntu/+source/tzdata/+bug/1554806
+    dpkg-reconfigure -f noninteractive tzdata
 }
 
 
@@ -89,13 +89,13 @@ function configureNTP() {
     ubuntu_version="$(lsb_release -sr)"
 
     if [[ $(bc -l <<< "${ubuntu_version} >= 20.04") -eq 1 ]]; then
-        sudo systemctl restart systemd-timesyncd
+        systemctl restart systemd-timesyncd
     else
-        sudo apt-get --assume-yes install ntp
+        DEBIAN_FRONTEND=noninteractive apt install -y ntp
         
         # force NTP to sync
-        sudo service ntp stop
-        sudo ntpd -gq
-        sudo service ntp start
+        service ntp stop
+        ntpd -gq
+        service ntp start
     fi
 }

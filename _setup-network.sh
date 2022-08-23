@@ -43,7 +43,7 @@ function setupFirewall()
 {
     local sshPort=${1}
 
-    apt install -y firewalld
+    DEBIAN_FRONTEND=noninteractive apt install -y firewalld
 
     firewall-cmd --permanent --remove-service=dhcpv6-client
     firewall-cmd --permanent --remove-service=ssh
