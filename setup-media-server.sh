@@ -169,6 +169,7 @@ function prepDownloaderCompose() {
 function updateFirewall() {
     local plexPort=${1}
     
+    firewall-cmd --permanent --zone=public --add-port=${plexPort}/tcp 
     firewall-cmd --permanent --add-forward-port=port=${plexPort}:proto=tcp:toaddr=127.0.0.1:toport=32400
     firewall-cmd --reload 
 }
