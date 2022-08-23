@@ -37,7 +37,7 @@ function main() {
     nzbgetUsername="nzbget"
     createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${nzbgetUsername}
 
-    
+
     printAndLog "Configuring docker network..."
     createDockerNetwork ${mediaGroup} ${downloaderGroup}
 
@@ -79,11 +79,11 @@ function createDockerNetwork() {
     local mediaNetwork=${1}
     local downloaderNetwork=${2}
 
-    docker network create --driver bridge --opt com.docker.network.bridge.name=bridge-${mediaNetwork} ${mediaNetwork}
-    docker network create --driver bridge --opt com.docker.network.bridge.name=bridge-${downloaderNetwork} ${downloaderNetwork}
+    docker network create --driver bridge --opt com.docker.network.bridge.name=${mediaNetwork} ${mediaNetwork}
+    docker network create --driver bridge --opt com.docker.network.bridge.name=${downloaderNetwork} ${downloaderNetwork}
 
-    firewall-cmd --permanent --zone=containers --add-interface=bridge-${mediaNetwork}
-    firewall-cmd --permanent --zone=containers --add-interface=bridge--${downloaderNetwork}
+    firewall-cmd --permanent --zone=containers --add-interface=${mediaNetwork}
+    firewall-cmd --permanent --zone=containers --add-interface=${downloaderNetwork}
 
     firewall-cmd --reload
 }
