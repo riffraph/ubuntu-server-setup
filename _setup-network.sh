@@ -48,5 +48,19 @@ function setupFirewall()
     firewall-cmd --permanent --remove-service=dhcpv6-client
     firewall-cmd --permanent --remove-service=ssh
     firewall-cmd --permanent --add-port=${sshPort}/tcp
+    firewall-cmd --permanent --zone=public --add-interface eth0
+    firewall-cmd --reload
 }
 
+
+function setupForwarding() {
+    # allow the forwarding of packets externally
+    if grep 'net.ipv4.ip_forward' /etc/sysctl.conf
+    then
+        sed -re 's/^(\#?)(net.ipv4.ip_forward=)(.*)/net.ipv4.ip_forward=1/' -i /etc/sysctl.conf
+    else
+        echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+    fi
+        
+    sysctl -p
+}

@@ -77,14 +77,11 @@ function main() {
     changeSSHConfig "${sshPort}"
     
 
-    # Disable IPv6
-    printAndLog "Disabling IPv6..." 
-    disableIPv6
-
-
     # Set up firewall
-    printAndLog "Configuring firewall... " 
+    printAndLog "Configuring network settings ... " 
+    disableIPv6
     setupFirewall "${sshPort}"
+    setupForwarding
 
 
     # Install utility packages
@@ -94,11 +91,7 @@ function main() {
     
     printAndLog "-- Installing Docker engine..."
     installDocker
-
-
-    # Add personal touches
-    # printAndLog "-- Installing Zsh..."
-    # setupZsh
+    disableDockerIPTables
 
 
     cleanup
