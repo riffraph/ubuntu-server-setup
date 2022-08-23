@@ -36,9 +36,11 @@ function main() {
     sonarrUsername="sonarr"
     nzbgetUsername="nzbget"
     createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${nzbgetUsername}
+
     
     printAndLog "Configuring docker network..."
     createDockerNetwork ${mediaGroup} ${downloaderGroup}
+
 
     printAndLog "Installing rclone... TODO"
     
@@ -46,7 +48,7 @@ function main() {
     printAndLog "Install and run media server apps..."
 
     read -rp "Enter the port to run Plex on: " plexPort
-    updateFirewall ${plexPort}
+    addPortForwarding ${plexPort}
 
     read -rp "Enter your Plex claim: " plexClaim
 
@@ -72,14 +74,20 @@ function main() {
 }
 
 
-# create network for the media server
+# create docker network
 function createDockerNetwork() {
     local mediaNetwork=${1}
     local downloaderNetwork=${2}
 
-    docker network create --driver bridge ${mediaNetwork}
-    docker network create --driver bridge ${downloaderNetwork}
+    docker network create --driver bridge --opt com.docker.network.bridge.name=bridge-${mediaNetwork} ${mediaNetwork}
+    docker network create --driver bridge --opt com.docker.network.bridge.name=bridge-${downloaderNetwork} ${downloaderNetwork}
+
+    firewall-cmd --permanent --zone=containers --add-interface=bridge-${mediaNetwork}
+    firewall-cmd --permanent --zone=containers --add-interface=bridge--${downloaderNetwork}
+
+    firewall-cmd --reload
 }
+
 
 function createUsersAndDirectoryStructure() {
     local mediaGroup=${1}
@@ -118,6 +126,7 @@ function createUsersAndDirectoryStructure() {
     scheduleUpdateOfPermissions ${plexUsername} ${mediaGroup}
 }
 
+
 function scheduleUpdateOfPermissions() {
     local plexUsername=${1}
     local plexGroup=${2}
@@ -131,6 +140,7 @@ function scheduleUpdateOfPermissions() {
     # finds anything not owned by plex and fixes them
     (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;") | crontab -u ${plexUsername} -
 }
+
 
 function prepMediaCompose() {
     local composeFile=${1}
@@ -166,11 +176,14 @@ function prepDownloaderCompose() {
 }
 
 
-function updateFirewall() {
+function addPortForwarding() {
     local plexPort=${1}
     
-    firewall-cmd --permanent --zone=public --add-port=${plexPort}/tcp 
-    firewall-cmd --permanent --add-forward-port=port=${plexPort}:proto=tcp:toaddr=127.0.0.1:toport=32400
+    firewall-cmd --permanent --policy worldToContainers  --add-port=${plexPort}/tcp 
+    firewall-cmd --permanent --policy worldToContainers  --add-forward-port=port=${plexPort}:proto=tcp:toaddr=127.0.0.1:toport=32400
+    firewall-cmd --permanent --policy worldToContainers  --add-port=${plexPort}/udp 
+    firewall-cmd --permanent --policy worldToContainers  --add-forward-port=port=${plexPort}:proto=udp:toaddr=127.0.0.1:toport=32400
+
     firewall-cmd --reload 
 }
 

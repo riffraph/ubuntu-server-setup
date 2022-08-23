@@ -49,6 +49,26 @@ function setupFirewall()
     firewall-cmd --permanent --remove-service=ssh
     firewall-cmd --permanent --add-port=${sshPort}/tcp
     firewall-cmd --permanent --zone=public --add-interface eth0
+
+    # policies for container traffic
+    firewall-cmd --permanent --new-zone containers
+
+    firewall-cmd --permanent --new-policy containersToWorld
+    firewall-cmd --permanent --policy containersToWorld --add-ingress-zone containers
+    firewall-cmd --permanent --policy containersToWorld --add-egress-zone ANY
+    firewall-cmd --permanent --policy containersToWorld --add-masquerade
+    firewall-cmd --permanent --policy containersToWorld --add-rich-rule='rule service name="ftp" reject'
+
+    firewall-cmd --permanent --new-policy worldToContainers
+    firewall-cmd --permanent --policy worldToContainers --add-ingress-zone ANY
+    firewall-cmd --permanent --policy worldToContainers --add-egress-zone ANY
+
+    firewall-cmd --permanent --new-policy containersToHost
+    firewall-cmd --permanent --policy containersToHost --add-ingress-zone containers
+    firewall-cmd --permanent --policy containersToHost --add-egress-zone HOST
+    firewall-cmd --permanent --policy containersToHost --set-target REJECT
+    firewall-cmd --permanent --policy containersToHost --add-service dns
+
     firewall-cmd --reload
 }
 
