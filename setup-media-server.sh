@@ -186,13 +186,13 @@ function prepComposeFile() {
 # it will remove existing rules for the respective apps
 # and add the rules again
 function resetForwardPortRules() {
-    local policy = ${1}
-    local plexPort = ${2}
-    local plexAddr = ${3}
-    local sonarrPort = ${4}
-    local sonarrAddr = ${5}
-    local nzbgetPort = ${6}
-    local nzbgetAddr = ${7}
+    local policy=${1}
+    local plexPort=${2}
+    local plexAddr=${3}
+    local sonarrPort=${4}
+    local sonarrAddr=${5}
+    local nzbgetPort=${6}
+    local nzbgetAddr=${7}
     
     # parse existing forward port rules 
     existingRules=$(firewall-cmd --policy ${policy} --list-forward-ports)
