@@ -87,9 +87,10 @@ function main() {
     sonarrAddr=$(getContainerIPAddress "sonarr")
     nzbgetAddr=$(getContainerIPAddress "nzbget")
 
-    resetForwardPortRule "worldToContainers" ${plexPort} ${plexAddr} ("tcp" "udp")
-    resetForwardPortRule "resWldToContainers" ${sonarrPort} ${sonarrAddr} ("tcp")
-    resetForwardPortRule "resWldToContainers" ${nzbgetPort} ${nzbgetAddr} ("tcp")
+    resetForwardPortRule "worldToContainers" ${plexPort} ${plexAddr} "tcp"
+    resetForwardPortRule "worldToContainers" ${plexPort} ${plexAddr} "udp"
+    resetForwardPortRule "resWldToContainers" ${sonarrPort} ${sonarrAddr} "tcp"
+    resetForwardPortRule "resWldToContainers" ${nzbgetPort} ${nzbgetAddr} "tcp"
 
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
