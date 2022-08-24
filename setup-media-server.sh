@@ -218,16 +218,16 @@ function resetForwardPortRules() {
             # find applications based on the expected port and remove the rule if found
             if (( $port == $plexPort )) || (( $port == $sonarrPort )) || (( $port == $nzbgetPort ));
             then
-                removeRule ${port} ${proto} ${toport} ${toaddr}
+                removeForwardPortRule ${port} ${proto} ${toport} ${toaddr}
             fi
         fi
     done
 
     # add forward port rules
-    addRule ${policy} ${plexPort} "tcp" ${plexPort} ${plexAddr}
-    addRule ${policy} ${plexPort} "udp" ${plexPort} ${plexAddr}
-    addRule ${policy} ${sonarrPort} "tcp" ${sonarrPort} ${sonarrAddr}
-    addRule ${policy} ${nzbgetPort} "tcp" ${nzbgetPort} ${nzbgetAddr}
+    addForwardPortRule ${policy} ${plexPort} "tcp" ${plexPort} ${plexAddr}
+    addForwardPortRule ${policy} ${plexPort} "udp" ${plexPort} ${plexAddr}
+    addForwardPortRule ${policy} ${sonarrPort} "tcp" ${sonarrPort} ${sonarrAddr}
+    addForwardPortRule ${policy} ${nzbgetPort} "tcp" ${nzbgetPort} ${nzbgetAddr}
 
     firewall-cmd --reload
 }
