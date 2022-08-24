@@ -99,12 +99,13 @@ function createDockerNetwork() {
 
 
 function removeForwardPortRule() {
-    local port=${1}
-    local proto=${2}
-    local toport=${3}
-    local toaddr=${4}
+    local policy=${1}
+    local port=${2}
+    local proto=${3}
+    local toport=${4}
+    local toaddr=${5}
 
-    firewall-cmd --permanent --remove-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
+    firewall-cmd --permanent --policy ${policy} --remove-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
 }
 
 
@@ -154,7 +155,7 @@ function resetForwardPortRule() {
             # remove the rule if the port matches
             if (( $port == $rulePort ));
             then
-                removeForwardPortRule ${rulePort} ${ruleProto} ${ruleToport} ${ruleToaddr}
+                removeForwardPortRule ${policy} ${rulePort} ${ruleProto} ${ruleToport} ${ruleToaddr}
             fi
         fi
     done
