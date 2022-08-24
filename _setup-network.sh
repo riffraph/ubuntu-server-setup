@@ -63,9 +63,9 @@ function setupFirewall()
     firewall-cmd --permanent --policy worldToContainers --add-ingress-zone ANY
     firewall-cmd --permanent --policy worldToContainers --add-egress-zone ANY
 
-    firewall-cmd --permanent --new-policy restrictedWorldToContainers
-    firewall-cmd --permanent --policy worldToContainers --add-ingress-zone ANY
-    firewall-cmd --permanent --policy worldToContainers --add-egress-zone ANY
+    firewall-cmd --permanent --new-policy resWldToContainers
+    firewall-cmd --permanent --policy resWldToContainers --add-ingress-zone ANY
+    firewall-cmd --permanent --policy resWldToContainers --add-egress-zone ANY
 
     firewall-cmd --permanent --new-policy containersToHost
     firewall-cmd --permanent --policy containersToHost --add-ingress-zone containers
