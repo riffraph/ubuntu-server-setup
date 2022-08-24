@@ -47,9 +47,6 @@ function main() {
 
     printAndLog "Install and run media server apps..."
 
-    read -rp "Enter the port to run Plex on: " plexPort
-    addPortForwarding ${plexPort}
-
     read -rp "Enter your Plex claim: " plexClaim
 
     plexUID=$(id -u ${plexUsername})
@@ -61,13 +58,35 @@ function main() {
     timezone=$(getTimezone)
 
     mediaComposeFile="media-docker-compose.yaml"
-    prepMediaCompose ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim}
-
-    downloaderComposeFile="downloader-docker-compose.yaml"
-    prepDownloaderCompose ${downloaderComposeFile} ${downloaderGroup} ${timezone} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
+    prepComposeFile ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${nzbgetUID} ${nzbgetGID}
     
     docker compose -f ${mediaComposeFile} up -d
-    docker compose -f ${downloaderComposeFile} up -d
+
+
+    printAndLog "Configure port forwarding for media server apps..."
+
+    read -rp "Enter the port to access Plex (default is 32400): " plexPort
+    if [ -z "${plexPort}" ]; then
+        plexPort=32400
+    fi
+
+    read -rp "Enter the port to access Sonarr (default is 8989): " sonarrPort
+    if [ -z "${sonarrPort}" ]; then
+        sonarrPort=8989
+    fi
+
+    read -rp "Enter the port to access Nzbget (default is 6789): " nzbgetPort
+    if [ -z "${nzbgetPort}" ]; then
+        nzbgetPort=6789
+    fi
+
+    # get IP addresses for each respective container
+    plexAddr=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' plex)
+    sonarrAddr=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sonarr)
+    nzbgetAddr=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' nzbget)
+    containerPolicy="worldToContainers"
+
+    resetForwardPortRules ${containerPolicy} ${plexPort} ${plexAddr} ${sonarrPort} ${sonarrAddr} ${nzbgetPort} ${nzbgetAddr}
 
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
@@ -81,11 +100,6 @@ function createDockerNetwork() {
 
     docker network create --driver bridge --opt com.docker.network.bridge.name=${mediaNetwork} ${mediaNetwork}
     docker network create --driver bridge --opt com.docker.network.bridge.name=${downloaderNetwork} ${downloaderNetwork}
-
-    firewall-cmd --permanent --zone=containers --add-interface=${mediaNetwork}
-    firewall-cmd --permanent --zone=containers --add-interface=${downloaderNetwork}
-
-    firewall-cmd --reload
 }
 
 
@@ -142,32 +156,24 @@ function scheduleUpdateOfPermissions() {
 }
 
 
-function prepMediaCompose() {
+function prepComposeFile() {
     local composeFile=${1}
     local mediaNetwork=${2}
     local timezone=${3} 
     local plexUID=${4} 
     local plexGID=${5} 
-    local plexClaim=${6}  
+    local plexClaim=${6}
+    local downloaderNetwork=${7}
+    local sonarrUID=${8}  
+    local sonarrGID=${9}  
+    local nzbgetUID=${10}  
+    local nzbgetGID=${11}   
 
     sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
     sed -re "s/_medianetwork_/${mediaNetwork}/g" -i ${composeFile}
     sed -re "s/_plexuid_/${plexUID}/g" -i ${composeFile}
     sed -re "s/_plexgid_/${plexGID}/g" -i ${composeFile}
     sed -re "s/_plexclaim_/${plexClaim}/g" -i ${composeFile}
-}
-
-
-function prepDownloaderCompose() {
-    local composeFile=${1}
-    local downloaderNetwork=${2}
-    local timezone=${3} 
-    local sonarrUID=${4}  
-    local sonarrGID=${5}  
-    local nzbgetUID=${6}  
-    local nzbgetGID=${7} 
-
-    sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
     sed -re "s/_downloadernetwork_/${downloaderNetwork}/g" -i ${composeFile}
     sed -re "s/_sonarruid_/${sonarrUID}/g" -i ${composeFile}
     sed -re "s/_sonarrgid_/${sonarrGID}/g" -i ${composeFile}
@@ -176,15 +182,54 @@ function prepDownloaderCompose() {
 }
 
 
-function addPortForwarding() {
-    local plexPort=${1}
+# reset forward port rules for media server apps
+# it will remove existing rules for the respective apps
+# and add the rules again
+function resetForwardPortRules() {
+    local policy = ${1}
+    local plexPort = ${2}
+    local plexAddr = ${3}
+    local sonarrPort = ${4}
+    local sonarrAddr = ${5}
+    local nzbgetPort = ${6}
+    local nzbgetAddr = ${7}
     
-    firewall-cmd --permanent --policy worldToContainers  --add-port=${plexPort}/tcp 
-    firewall-cmd --permanent --policy worldToContainers  --add-forward-port=port=${plexPort}:proto=tcp:toaddr=127.0.0.1:toport=32400
-    firewall-cmd --permanent --policy worldToContainers  --add-port=${plexPort}/udp 
-    firewall-cmd --permanent --policy worldToContainers  --add-forward-port=port=${plexPort}:proto=udp:toaddr=127.0.0.1:toport=32400
+    # parse existing forward port rules 
+    existingRules=$(firewall-cmd --policy ${policy} --list-forward-ports)
 
-    firewall-cmd --reload 
+    for rule in ${existingRules}
+    do
+        IFS=':' read -r -a tmp1 <<< "${rule}"
+
+        if (( ${#tmp1[@]} == 4 ));
+        then
+            IFS='=' read -r -a tmp2 <<< ${tmp1[0]}
+            port=${tmp2[1]}
+
+            IFS='=' read -r -a tmp2 <<< ${tmp1[1]}
+            proto=${tmp2[1]}
+
+            IFS='=' read -r -a tmp2 <<< ${tmp1[2]}
+            toport=${tmp2[1]}
+
+            IFS='=' read -r -a tmp2 <<< ${tmp1[3]}
+            toaddr=${tmp2[1]}
+
+            # find applications based on the expected port and remove the rule if found
+            if (( $port == $plexPort )) || (( $port == $sonarrPort )) || (( $port == $nzbgetPort ));
+            then
+                removeRule ${port} ${proto} ${toport} ${toaddr}
+            fi
+        fi
+    done
+
+    # add forward port rules
+    addRule ${policy} ${plexPort} "tcp" ${plexPort} ${plexAddr}
+    addRule ${policy} ${plexPort} "udp" ${plexPort} ${plexAddr}
+    addRule ${policy} ${sonarrPort} "tcp" ${sonarrPort} ${sonarrAddr}
+    addRule ${policy} ${nzbgetPort} "tcp" ${nzbgetPort} ${nzbgetAddr}
+
+    firewall-cmd --reload
 }
 
 
