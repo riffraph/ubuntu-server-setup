@@ -63,6 +63,10 @@ function setupFirewall()
     firewall-cmd --permanent --policy worldToContainers --add-ingress-zone ANY
     firewall-cmd --permanent --policy worldToContainers --add-egress-zone ANY
 
+    firewall-cmd --permanent --new-policy restrictedWorldToContainers
+    firewall-cmd --permanent --policy worldToContainers --add-ingress-zone ANY
+    firewall-cmd --permanent --policy worldToContainers --add-egress-zone ANY
+
     firewall-cmd --permanent --new-policy containersToHost
     firewall-cmd --permanent --policy containersToHost --add-ingress-zone containers
     firewall-cmd --permanent --policy containersToHost --add-egress-zone HOST
@@ -94,19 +98,39 @@ function createDockerNetwork() {
 }
 
 
-# reset forward port rules for media server apps
-# it will remove existing rules for the respective apps
-# and add the rules again
-function resetForwardPortRules() {
+function removeForwardPortRule() {
+    local port=${1}
+    local proto=${2}
+    local toport=${3}
+    local toaddr=${4}
+
+    firewall-cmd --permanent --remove-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
+}
+
+
+function addForwardPortRule() {
     local policy=${1}
-    local plexPort=${2}
-    local plexAddr=${3}
-    local sonarrPort=${4}
-    local sonarrAddr=${5}
-    local nzbgetPort=${6}
-    local nzbgetAddr=${7}
-    
+    local port=${2}
+    local proto=${3}
+    local toport=${4}
+    local toaddr=${5}
+
+    firewall-cmd --permanent --policy ${policy} --add-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
+}
+
+
+# it will remove existing rules for the given policy & port
+# and add the rules again with the provided ip address
+function resetForwardPortRule() {
+    local policy=${1}
+    local port=${2}
+    local toaddr=${3}
+    shift 3
+    local protoArray="$@"
+
     # parse existing forward port rules 
+    # Note, this is only searching on forward port rules defined in policies ... 
+    # when there is a generic get all forward port rules command, consider using it instead
     existingRules=$(firewall-cmd --policy ${policy} --list-forward-ports)
 
     for rule in ${existingRules}
@@ -116,30 +140,29 @@ function resetForwardPortRules() {
         if (( ${#tmp1[@]} == 4 ));
         then
             IFS='=' read -r -a tmp2 <<< ${tmp1[0]}
-            port=${tmp2[1]}
+            rulePort=${tmp2[1]}
 
             IFS='=' read -r -a tmp2 <<< ${tmp1[1]}
-            proto=${tmp2[1]}
+            ruleProto=${tmp2[1]}
 
             IFS='=' read -r -a tmp2 <<< ${tmp1[2]}
-            toport=${tmp2[1]}
+            ruleToport=${tmp2[1]}
 
             IFS='=' read -r -a tmp2 <<< ${tmp1[3]}
-            toaddr=${tmp2[1]}
+            ruleToaddr=${tmp2[1]}
 
-            # find applications based on the expected port and remove the rule if found
-            if (( $port == $plexPort )) || (( $port == $sonarrPort )) || (( $port == $nzbgetPort ));
+            # remove the rule if the port matches
+            if (( $port == $rulePort ));
             then
-                removeForwardPortRule ${port} ${proto} ${toport} ${toaddr}
+                removeForwardPortRule ${rulePort} ${ruleProto} ${ruleToport} ${ruleToaddr}
             fi
         fi
     done
 
-    # add forward port rules
-    addForwardPortRule ${policy} ${plexPort} "tcp" ${plexPort} ${plexAddr}
-    addForwardPortRule ${policy} ${plexPort} "udp" ${plexPort} ${plexAddr}
-    addForwardPortRule ${policy} ${sonarrPort} "tcp" ${sonarrPort} ${sonarrAddr}
-    addForwardPortRule ${policy} ${nzbgetPort} "tcp" ${nzbgetPort} ${nzbgetAddr}
+    for proto in "${protoArray[@]}";
+    do
+        addForwardPortRule ${policy} ${port} ${proto} ${port} ${toaddr}
+    done
 
     firewall-cmd --reload
 }

@@ -86,10 +86,10 @@ function main() {
     plexAddr=$(getContainerIPAddress "plex")
     sonarrAddr=$(getContainerIPAddress "sonarr")
     nzbgetAddr=$(getContainerIPAddress "nzbget")
-    containerPolicy="worldToContainers"
 
-    resetForwardPortRules ${containerPolicy} ${plexPort} ${plexAddr} ${sonarrPort} ${sonarrAddr} ${nzbgetPort} ${nzbgetAddr}
-
+    resetForwardPortRule "worldToContainers" ${plexPort} ${plexAddr} ("tcp" "udp")
+    resetForwardPortRule "restrictedWorldToContainers" ${sonarrPort} ${sonarrAddr} ("tcp")
+    resetForwardPortRule "restrictedWorldToContainers" ${nzbgetPort} ${nzbgetAddr} ("tcp")
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
 }

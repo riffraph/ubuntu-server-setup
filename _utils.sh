@@ -53,26 +53,6 @@ function getTimezone() {
 }
 
 
-function removeForwardPortRule() {
-    local port=${1}
-    local proto=${2}
-    local toport=${3}
-    local toaddr=${4}
-
-    firewall-cmd --permanent --remove-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
-}
-
-function addForwardPortRule() {
-    local policy=${1}
-    local port=${2}
-    local proto=${3}
-    local toport=${4}
-    local toaddr=${5}
-
-    firewall-cmd --permanent --policy ${policy} --add-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
-}
-
-
 function getContainerIPAddress() {
     local ipAddress=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${1})
     echo ${ipAddress}
