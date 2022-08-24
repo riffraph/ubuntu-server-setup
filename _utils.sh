@@ -49,7 +49,7 @@ function printAndLog() {
 # get timezone
 function getTimezone() {
     local timezone=$(cat /etc/timezone)
-    echo $timezone
+    echo ${timezone}
 }
 
 
@@ -70,4 +70,10 @@ function addForwardPortRule() {
     local toaddr=${5}
 
     firewall-cmd --permanent --policy ${policy} --add-forward-port=port=${port}:proto=${proto}:toport=${toport}:toaddr=${toaddr}
+}
+
+
+function getContainerIPAddress() {
+    local ipAddress=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${1})
+    echo ${ipAddress}
 }

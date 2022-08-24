@@ -84,3 +84,62 @@ function setupForwarding() {
         
     sysctl -p
 }
+
+
+# create docker network
+function createDockerNetwork() {
+    local networkName=${1}
+
+    docker network create --driver bridge --opt com.docker.network.bridge.name=${networkName} ${networkName}
+}
+
+
+# reset forward port rules for media server apps
+# it will remove existing rules for the respective apps
+# and add the rules again
+function resetForwardPortRules() {
+    local policy=${1}
+    local plexPort=${2}
+    local plexAddr=${3}
+    local sonarrPort=${4}
+    local sonarrAddr=${5}
+    local nzbgetPort=${6}
+    local nzbgetAddr=${7}
+    
+    # parse existing forward port rules 
+    existingRules=$(firewall-cmd --policy ${policy} --list-forward-ports)
+
+    for rule in ${existingRules}
+    do
+        IFS=':' read -r -a tmp1 <<< "${rule}"
+
+        if (( ${#tmp1[@]} == 4 ));
+        then
+            IFS='=' read -r -a tmp2 <<< ${tmp1[0]}
+            port=${tmp2[1]}
+
+            IFS='=' read -r -a tmp2 <<< ${tmp1[1]}
+            proto=${tmp2[1]}
+
+            IFS='=' read -r -a tmp2 <<< ${tmp1[2]}
+            toport=${tmp2[1]}
+
+            IFS='=' read -r -a tmp2 <<< ${tmp1[3]}
+            toaddr=${tmp2[1]}
+
+            # find applications based on the expected port and remove the rule if found
+            if (( $port == $plexPort )) || (( $port == $sonarrPort )) || (( $port == $nzbgetPort ));
+            then
+                removeForwardPortRule ${port} ${proto} ${toport} ${toaddr}
+            fi
+        fi
+    done
+
+    # add forward port rules
+    addForwardPortRule ${policy} ${plexPort} "tcp" ${plexPort} ${plexAddr}
+    addForwardPortRule ${policy} ${plexPort} "udp" ${plexPort} ${plexAddr}
+    addForwardPortRule ${policy} ${sonarrPort} "tcp" ${sonarrPort} ${sonarrAddr}
+    addForwardPortRule ${policy} ${nzbgetPort} "tcp" ${nzbgetPort} ${nzbgetAddr}
+
+    firewall-cmd --reload
+}
