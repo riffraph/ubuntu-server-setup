@@ -69,7 +69,7 @@ function main() {
 
     read -rp "Enter the IP address to allow access to restricted apps from: " restrictedIPAddr
     if [ -z "${plexPort}" ]; then
-        addIPToAllowedList "trusted" ${restrictedIPAddr}
+        addIPToZone "trusted" ${restrictedIPAddr}
     fi
 
     read -rp "Enter the port to access Plex (default is 32400): " plexPort

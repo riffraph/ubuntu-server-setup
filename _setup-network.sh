@@ -156,8 +156,8 @@ function resetForwardPortRule() {
             IFS='=' read -r -a tmp2 <<< ${tmp1[3]}
             ruleToaddr=${tmp2[1]}
 
-            # remove the rule if the port matches
-            if (( $port == $rulePort ));
+            # remove the rule if the port and protocol match
+            if (( ${port} == ${rulePort} )) && [[ ${proto} == ${ruleProto} ]];
             then
                 removeForwardPortRule ${policy} ${rulePort} ${ruleProto} ${ruleToport} ${ruleToaddr}
             fi
