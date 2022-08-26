@@ -26,7 +26,7 @@ function main() {
     if [ -z "${ipAddr}" ]; then
         echo "nothing done"
     else 
-        addIPToWhitelist ${zone} ${ipaddr}
+        addIPToZone ${zone} ${ipaddr}
     fi
 }
 

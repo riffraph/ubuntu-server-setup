@@ -50,10 +50,12 @@ function setupFirewall()
     firewall-cmd --permanent --zone=public --add-port=${sshPort}/tcp
     firewall-cmd --permanent --zone=public --add-interface eth0
 
-    ## firewall design:
-    # utilise built in public and trusted zones. Use zones for restricting access e.g. IP allowed listing
-    # bind forward port rules to policies
-    # bind policies to the respective zones. This is mostly applicable when you want to restrict access to specific ports to specific IPs.
+    ## Firewall design:
+    # Utilise built in public and trusted zones. Create a zone a zone specifically for containers. Zones are to be used for restricting access e.g. IP allowed listing.
+    # Policies are used to bind forward port rules to.
+    # Policies are then bound to the respective zones. This is mostly applicable when you want to restrict access to specific ports to specific IPs.
+    
+    firewall-cmd --permanent --new-zone containers
 
     firewall-cmd --permanent --new-policy containersToWorld
     firewall-cmd --permanent --policy containersToWorld --add-ingress-zone containers
@@ -169,7 +171,7 @@ function resetForwardPortRule() {
 
 
 # add to IP allowed list
-function addIPToAllowedList() {
+function addIPToZone() {
     local zone=${1}
     local ipAddr=${2}
 

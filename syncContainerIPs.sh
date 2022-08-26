@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# this script is intended to be used when the container ip address changes
+
 set -e
 
 function getCurrentDir() {
@@ -41,6 +43,12 @@ function main() {
     resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "udp"
     resetForwardPortRule "restrInbound" ${sonarrPort} ${sonarrAddr} "tcp"
     resetForwardPortRule "restrInbound" ${nzbgetPort} ${nzbgetAddr} "tcp"
+
+    # TODO: remove all sources from container zone
+
+    addIPToZone "containers" ${plexAddr}
+    addIPToZone "containers" ${sonarrAddr}
+    addIPToZone "containers" ${nzbgetAddr}
 }
 
 

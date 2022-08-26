@@ -97,6 +97,10 @@ function main() {
     resetForwardPortRule "restrInbound" ${sonarrPort} ${sonarrAddr} "tcp"
     resetForwardPortRule "restrInbound" ${nzbgetPort} ${nzbgetAddr} "tcp"
 
+    addIPToZone "containers" ${plexAddr}
+    addIPToZone "containers" ${sonarrAddr}
+    addIPToZone "containers" ${nzbgetAddr}
+
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
 }
