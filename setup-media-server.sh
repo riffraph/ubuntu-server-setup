@@ -67,6 +67,11 @@ function main() {
 
     printAndLog "Configure port forwarding for media server apps..."
 
+    read -rp "Enter the IP address to allow access to restricted apps from: " restrictedIPAddr
+    if [ -z "${plexPort}" ]; then
+        addIPToAllowedList "trusted" ${restrictedIPAddr}
+    fi
+
     read -rp "Enter the port to access Plex (default is 32400): " plexPort
     if [ -z "${plexPort}" ]; then
         plexPort=32400
@@ -87,10 +92,10 @@ function main() {
     sonarrAddr=$(getContainerIPAddress "sonarr")
     nzbgetAddr=$(getContainerIPAddress "nzbget")
 
-    resetForwardPortRule "worldToContainers" ${plexPort} ${plexAddr} "tcp"
-    resetForwardPortRule "worldToContainers" ${plexPort} ${plexAddr} "udp"
-    resetForwardPortRule "resWldToContainers" ${sonarrPort} ${sonarrAddr} "tcp"
-    resetForwardPortRule "resWldToContainers" ${nzbgetPort} ${nzbgetAddr} "tcp"
+    resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "tcp"
+    resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "udp"
+    resetForwardPortRule "restrInbound" ${sonarrPort} ${sonarrAddr} "tcp"
+    resetForwardPortRule "restrInbound" ${nzbgetPort} ${nzbgetAddr} "tcp"
 
 
     printAndLog "Setup Done! Log file is located at ${logFile}"

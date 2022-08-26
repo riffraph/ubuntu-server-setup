@@ -45,13 +45,15 @@ function setupFirewall()
 
     DEBIAN_FRONTEND=noninteractive apt install -y firewalld
 
-    firewall-cmd --permanent --remove-service=dhcpv6-client
-    firewall-cmd --permanent --remove-service=ssh
-    firewall-cmd --permanent --add-port=${sshPort}/tcp
+    firewall-cmd --permanent --zone=public --remove-service=dhcpv6-client
+    firewall-cmd --permanent --zone=public --remove-service=ssh
+    firewall-cmd --permanent --zone=public --add-port=${sshPort}/tcp
     firewall-cmd --permanent --zone=public --add-interface eth0
 
-    # policies for container traffic
-    firewall-cmd --permanent --new-zone containers
+    ## firewall design:
+    # utilise built in public and trusted zones. Use zones for restricting access e.g. IP allowed listing
+    # bind forward port rules to policies
+    # bind policies to the respective zones. This is mostly applicable when you want to restrict access to specific ports to specific IPs.
 
     firewall-cmd --permanent --new-policy containersToWorld
     firewall-cmd --permanent --policy containersToWorld --add-ingress-zone containers
@@ -59,13 +61,14 @@ function setupFirewall()
     firewall-cmd --permanent --policy containersToWorld --add-masquerade
     firewall-cmd --permanent --policy containersToWorld --add-rich-rule='rule service name="ftp" reject'
 
-    firewall-cmd --permanent --new-policy worldToContainers
-    firewall-cmd --permanent --policy worldToContainers --add-ingress-zone ANY
-    firewall-cmd --permanent --policy worldToContainers --add-egress-zone ANY
+    firewall-cmd --permanent --new-policy inbound
+    firewall-cmd --permanent --policy inbound --add-ingress-zone public
+    firewall-cmd --permanent --policy inbound --add-ingress-zone trusted
+    firewall-cmd --permanent --policy inbound --add-egress-zone ANY
 
-    firewall-cmd --permanent --new-policy resWldToContainers
-    firewall-cmd --permanent --policy resWldToContainers --add-ingress-zone ANY
-    firewall-cmd --permanent --policy resWldToContainers --add-egress-zone ANY
+    firewall-cmd --permanent --new-policy restrInbound
+    firewall-cmd --permanent --policy restrInbound --add-ingress-zone trusted
+    firewall-cmd --permanent --policy restrInbound --add-egress-zone ANY
 
     firewall-cmd --permanent --new-policy containersToHost
     firewall-cmd --permanent --policy containersToHost --add-ingress-zone containers
@@ -161,5 +164,15 @@ function resetForwardPortRule() {
 
     addForwardPortRule ${policy} ${port} ${proto} ${port} ${toaddr}
 
+    firewall-cmd --reload
+}
+
+
+# add to IP allowed list
+function addIPToAllowedList() {
+    local zone=${1}
+    local ipAddr=${2}
+
+    firewall-cmd --permanent --zone=${zone} --add-source=${ipAddr}/32
     firewall-cmd --reload
 }
