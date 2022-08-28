@@ -65,6 +65,24 @@ services:
     networks:
       - downloader
 
+  radarr:
+    container_name: radarr
+    image: lscr.io/linuxserver/radarr:latest
+    hostname: radarr:server
+    environment:
+      PUID: _radarruid_
+      PGID: _radarrgid_
+      TZ: _timezone_
+    volumes:
+      - /serverapps/sonarr/config:/config
+      - /path/to/movies:/movies #optional
+      - /path/to/downloadclient-downloads:/downloads #optional
+    ports:
+      - "127.0.0.1:7878:7878"
+    restart: unless-stopped
+    networks:
+      - downloader
+
   
 networks:
   media:

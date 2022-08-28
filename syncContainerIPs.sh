@@ -29,6 +29,11 @@ function main() {
         sonarrPort=8989
     fi
 
+    read -rp "Enter the port to access Radarr (default is 7878): " radarrPort
+    if [ -z "${radarrPort}" ]; then
+        radarrPort=7878
+    fi
+
     read -rp "Enter the port to access Nzbget (default is 6789): " nzbgetPort
     if [ -z "${nzbgetPort}" ]; then
         nzbgetPort=6789
@@ -42,12 +47,14 @@ function main() {
     resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "tcp"
     resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "udp"
     resetForwardPortRule "restrInbound" ${sonarrPort} ${sonarrAddr} "tcp"
+    resetForwardPortRule "restrInbound" ${radarrPort} ${radarrAddr} "tcp"
     resetForwardPortRule "restrInbound" ${nzbgetPort} ${nzbgetAddr} "tcp"
 
     # TODO: remove all sources from container zone
 
     addIPToZone "containers" ${plexAddr}
     addIPToZone "containers" ${sonarrAddr}
+    addIPToZone "containers" ${radarrAddr}
     addIPToZone "containers" ${nzbgetAddr}
 }
 
