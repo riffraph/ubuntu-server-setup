@@ -83,7 +83,7 @@ function prepMaintenanceScripts() {
 
     cp _script_* ${tmpDir}
 
-    for file in ./${tmpDir}/*.sh;
+    for file in ./${tmpDir}/*;
     do
         # update dependency from the script to this folder
         sed -re "s:_libDir_:${libDir}:g" -i ${file}
