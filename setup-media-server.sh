@@ -55,6 +55,7 @@ function main() {
         mkdir -p ${outputScriptDir}
     fi
     mountDrive ${outputScriptDir}
+    cd ${currentDir}
 
     # TODO: reconcile the mount points and the mapping for each app in docker
     
@@ -142,8 +143,8 @@ function createUsersAndDirectoryStructure() {
     local downloaderGroup=${2}
     local plexUsername=${3}
     local sonarrUsername=${4}
-    local radarrUsername=${4}
-    local nzbgetUsername=${5}
+    local radarrUsername=${5}
+    local nzbgetUsername=${6}
 
     # create groups
     groupadd -f ${downloaderGroup}

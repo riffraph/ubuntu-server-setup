@@ -70,8 +70,8 @@ function mountDrive() {
     chmod g+x ${scriptDir}/rclone_upload
     chmod g+x ${scriptDir}/rclone_unmount
 
-    prepMountScript() ${scriptDir}/rclone_mount
-    prepUploadScript() ${scriptDir}/rclone_upload
+    prepMountScript ${scriptDir}/rclone_mount
+    prepUploadScript ${scriptDir}/rclone_upload
 
     (crontab -l 2>/dev/null; echo "@reboot ${scriptDir}/rclone_unmount") | crontab -u root -
     (crontab -l 2>/dev/null; echo "*/10 * * * * ${scriptDir}/rclone_mount") | crontab -u root -
