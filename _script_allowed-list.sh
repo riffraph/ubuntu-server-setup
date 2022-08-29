@@ -2,17 +2,12 @@
 
 set -e
 
-function getCurrentDir() {
-    local currentDir="${BASH_SOURCE%/*}"
-    if [[ ! -d "${currentDir}" ]]; then currentDir="$PWD"; fi
-    echo "${currentDir}"
-}
 
 function includeDependencies() {
     source "${currentDir}/_setup-network.sh"
 }
 
-currentDir=$(getCurrentDir)
+libDir=_libDir_
 includeDependencies
 
 

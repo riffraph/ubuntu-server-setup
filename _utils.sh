@@ -57,3 +57,38 @@ function getContainerIPAddress() {
     local ipAddress=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${1})
     echo ${ipAddress}
 }
+
+
+function moveScript() {
+    local file=${1} 
+    local destinationDir=${2}
+
+    # strip the prefix when moving
+    newFilename=$(basename -- ${file})
+    newFilename=${newFilename#_script_}
+    mv ${file} ${destinationDir}/${newFilename}
+}
+
+
+function prepMaintenanceScripts() {
+    local scriptDir=${1}
+
+    tmpDir="tmp"
+
+    if [[ ! -e ${tmpDir} ]]; 
+    then
+        mkdir -p ${tmpDir}
+    fi
+
+    cp _script_* ${tmpDir}
+
+    for file in "./${tmpDir}";
+    do
+        # update dependency from the script to this folder
+        sed -re "s:_libDir_:${currentDir}:g" -i ${file}
+
+        moveScript ${file} ${scriptDir}
+    done
+
+    rm -rf ${tmpDir}
+}

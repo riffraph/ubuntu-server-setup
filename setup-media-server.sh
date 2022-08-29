@@ -113,6 +113,16 @@ function main() {
     addIPToZone "containers" ${nzbgetAddr}
 
 
+    printAndLog "Preparing maintenance scripts..."
+    scriptDir="/usr/scripts"
+    if [[ ! -e ${scriptDir} ]];
+    then
+        mkdir -p ${scriptDir}
+    fi
+    prepMaintenanceScripts ${scriptDir}
+    printAndLog "Maintenance scripts are available in ${scriptDir}"
+
+
     printAndLog "Setup Done! Log file is located at ${logFile}"
 }
 
