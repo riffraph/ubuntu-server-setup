@@ -9,6 +9,7 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
+    source "${currentDir}/_setup-mounts.sh"
     source "${currentDir}/_setup-network.sh"
     source "${currentDir}/_utils.sh"
 }
@@ -17,6 +18,7 @@ currentDir=$(getCurrentDir)
 includeDependencies
 logFile=$(basename $0) 
 logFile+=".log"
+outputScriptDir="/usr/scripts"
 
 
 function main() {
@@ -45,7 +47,16 @@ function main() {
     createDockerNetwork ${downloaderGroup}
 
 
-    printAndLog "Installing rclone... TODO"
+    printAndLog "Configuring mounting point for Google Drive..."
+    installMergerfs
+    installRClone
+    if [[ ! -e ${outputScriptDir} ]];
+    then
+        mkdir -p ${outputScriptDir}
+    fi
+    mountDrive ${outputScriptDir}
+
+    # TODO: reconcile the mount points and the mapping for each app in docker
     
 
     printAndLog "Install and run media server apps..."
@@ -114,13 +125,12 @@ function main() {
 
 
     printAndLog "Preparing maintenance scripts..."
-    scriptDir="/usr/scripts"
-    if [[ ! -e ${scriptDir} ]];
+    if [[ ! -e ${outputScriptDir} ]];
     then
-        mkdir -p ${scriptDir}
+        mkdir -p ${outputScriptDir}
     fi
-    prepMaintenanceScripts ${scriptDir}
-    printAndLog "Maintenance scripts are available in ${scriptDir}"
+    prepMaintenanceScripts ${outputScriptDir}
+    printAndLog "Maintenance scripts are available in ${outputScriptDir}"
 
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
