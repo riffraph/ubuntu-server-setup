@@ -21,7 +21,7 @@ function installRClone() {
     sudo cp rclone.1 /usr/local/share/man/man1/
     sudo mandb
 
-    cd ..
+    cd ../..
     rm -rf ${tmpDir}
 }
 
