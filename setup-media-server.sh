@@ -55,7 +55,6 @@ function main() {
         mkdir -p ${outputScriptDir}
     fi
     mountDrive ${outputScriptDir}
-    cd ${currentDir}
 
     # TODO: reconcile the mount points and the mapping for each app in docker
     

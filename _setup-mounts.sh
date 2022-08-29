@@ -1,6 +1,13 @@
 #!/bin/bash
 
 function installRClone() {
+    tmpDir="tmp"
+    if [[ ! -e ${tmpDir} ]]; 
+    then
+        mkdir -p ${tmpDir}
+    fi
+    cd ${tmpDir}
+
     # from https://rclone.org/install/
     curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
     unzip rclone-current-linux-amd64.zip
@@ -13,6 +20,9 @@ function installRClone() {
     sudo mkdir -p /usr/local/share/man/man1
     sudo cp rclone.1 /usr/local/share/man/man1/
     sudo mandb
+
+    cd ..
+    rm -rf ${tmpDir}
 }
 
 
