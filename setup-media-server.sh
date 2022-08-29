@@ -129,7 +129,7 @@ function main() {
     then
         mkdir -p ${outputScriptDir}
     fi
-    prepMaintenanceScripts ${outputScriptDir}
+    prepMaintenanceScripts ${outputScriptDir} ${currentDir}
     printAndLog "Maintenance scripts are available in ${outputScriptDir}"
 
 

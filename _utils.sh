@@ -72,6 +72,7 @@ function moveScript() {
 
 function prepMaintenanceScripts() {
     local scriptDir=${1}
+    local libDir=${2}
 
     tmpDir="tmp"
 
@@ -85,7 +86,7 @@ function prepMaintenanceScripts() {
     for file in "./${tmpDir}";
     do
         # update dependency from the script to this folder
-        sed -re "s:_libDir_:${currentDir}:g" -i ${file}
+        sed -re "s:_libDir_:${libDir}:g" -i ${file}
 
         moveScript ${file} ${scriptDir}
     done
