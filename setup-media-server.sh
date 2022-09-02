@@ -23,21 +23,12 @@ outputDir="/usr/mediaserver"
 
 
 function main() {
-    # Run setup functions
-    trap EXIT SIGHUP SIGINT SIGTERM
-
-    # create fd 3, redirect stdout and stderr to the log 
-    exec 3>&1 2>&1 1>>${logFile}
-
-    resetLog ${logFile}
-    logTimestamp ${logFile}
-
     if [[ ! -e ${outputDir} ]];
     then
         mkdir -p ${outputDir}
     fi
 
-    printAndLog "Create users, groups and directory structure..."
+    echo "Create users, groups and directory structure..."
     mediaGroup="media"
     downloaderGroup="downloader"
     plexUsername="plex"
@@ -47,19 +38,19 @@ function main() {
     createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${radarrUsername} ${nzbgetUsername}
 
 
-    printAndLog "Configuring docker network..."
+    echo "Configuring docker network..."
     createDockerNetwork ${mediaGroup}
     createDockerNetwork ${downloaderGroup}
 
 
-    printAndLog "Configuring mounting point for Google Drive..."
+    echo "Configuring mounting point for Google Drive..."
     installMergerfs
     installRClone
 
-    printAndLog "You will need to use rclone config to set up:"
-    printAndLog "1. oath client id" 
-    printAndLog "2. authenticate with Google Drive"
-    printAndLog "3. passwords for encryption"
+    echo "You will need to use rclone config to set up:"
+    echo "1. oath client id" 
+    echo "2. authenticate with Google Drive"
+    echo "3. passwords for encryption"
 
     cp "${templatesDir}/rclone.conf" /serverapps/rclone/config
     rclone config --config="/serverapps/rclone/config/rclone.conf"
@@ -68,7 +59,7 @@ function main() {
     ln -sd /mnt/user /user
 
 
-    printAndLog "Install and run media server apps..."
+    echo "Install and run media server apps..."
 
     read -rp "Enter your Plex claim: " plexClaim
 
@@ -92,12 +83,12 @@ function main() {
 
     cp "${templatesDir}/${mediaComposeFile}" ${outputDir}
     prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
-    printAndLog "Docker compose file is available in ${outputDir}"
+    echo "Docker compose file is available in ${outputDir}"
     
     docker compose -f "${outputDir}/${mediaComposeFile}" up -d
 
 
-    printAndLog "Configure port forwarding for media server apps..."
+    echo "Configure port forwarding for media server apps..."
 
     read -rp "Enter the IP address to allow access to restricted apps from: " restrictedIPAddr
     if [ -z "${plexPort}" ]; then
@@ -142,12 +133,9 @@ function main() {
     addIPToZone "containers" ${nzbgetAddr}
 
 
-    printAndLog "Preparing maintenance scripts..."
+    echo "Preparing maintenance scripts..."
     prepMaintenanceScripts ${templatesDir} ${outputDir} ${currentDir}
-    printAndLog "Maintenance scripts are available in ${outputDir}"
-
-
-    printAndLog "Setup Done! Log file is located at ${logFile}"
+    echo "Maintenance scripts are available in ${outputDir}"
 }
 
 
