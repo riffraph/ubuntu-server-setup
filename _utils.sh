@@ -59,37 +59,16 @@ function getContainerIPAddress() {
 }
 
 
-function moveScript() {
-    local file=${1} 
-    local destinationDir=${2}
-
-    # strip the prefix when moving
-    newFilename=$(basename -- ${file})
-    newFilename=${newFilename#_script_}
-    mv ${file} ${destinationDir}/${newFilename}
-}
-
-
 function prepMaintenanceScripts() {
-    local scriptDir=${1}
-    local libDir=${2}
+    local sourceDir=${1}
+    local destinationDir=${2}
+    local libDir=${3}
 
-    tmpDir="tmp"
+    cp ${sourceDir}/*.sh ${destinationDir}
 
-    if [[ ! -e ${tmpDir} ]]; 
-    then
-        mkdir -p ${tmpDir}
-    fi
-
-    cp _script_* ${tmpDir}
-
-    for file in ./${tmpDir}/*;
+    for file in ./${destinationDir}/*.sh;
     do
         # update dependency from the script to this folder
         sed -re "s:_libDir_:${libDir}:g" -i ${file}
-
-        moveScript ${file} ${scriptDir}
     done
-
-    rm -rf ${tmpDir}
 }

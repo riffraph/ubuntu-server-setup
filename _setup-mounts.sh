@@ -39,23 +39,29 @@ function installMergerfs() {
 # 4. clone these scripts https://github.com/BinsonBuzz/unraid_rclone_mount and adjust parameters as necessary
 # 5. schedule the running of the scripts in crontab
 #    - @reboot /ubuntu... /unraid .../rclone_unmount
-#    - @reboot /ubuntu... /unraid .../rclone_unmount
-#    - */10 * * * * /ubuntu... /unraid .../rclone_unmount
+#    - */10 * * * * /ubuntu... /unraid .../rclone_mount
+#    - */10 * * * * /ubuntu... /unraid .../rclone_upload
 
 
 function prepMountScript() {
     local scriptPath=${1}
+    rcloneRemoteName="gdrive_vfs"
+    rcloneMaxSize="170G"
+    dockerApps="nzbget plex sonarr radarr"
 
-    #sed -re "s:_libDir_:${currentDir}:g" -i ${file}
-    echo "to implement"
+    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${file}
+    sed -re "s/RcloneCacheMaxSize=.*$/RcloneCacheMaxSize=\"${rcloneCacheMaxSize}\"/" -i ${file}
+    sed -re "s/DockerStart=.*$/DockerStart=\"${dockerApps}\"/" -i ${file}
 }
 
 
 function prepUploadScript() {
     local scriptPath=${1}
+    rcloneRemoteName="gdrive_vfs"
+    rcloneUploadRemoteName="gdrive_vfs"
 
-    #sed -re "s:_libDir_:${currentDir}:g" -i ${file}
-    echo "to implement"
+    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${file}
+    sed -re "s/RcloneUploadRemoteName=.*$/RcloneUploadRemoteName=\"${rcloneUploadRemoteName}\"/" -i ${file}
 }
 
 
@@ -83,9 +89,9 @@ function mountDrive() {
     prepMountScript ${scriptDir}/rclone_mount
     prepUploadScript ${scriptDir}/rclone_upload
 
-    (crontab -l 2>/dev/null; echo "@reboot ${scriptDir}/rclone_unmount") | crontab -u root -
     (crontab -l 2>/dev/null; echo "*/10 * * * * ${scriptDir}/rclone_mount") | crontab -u root -
     (crontab -l 2>/dev/null; echo "*/10 * * * * ${scriptDir}/rclone_upload") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "@reboot ${scriptDir}/rclone_unmount") | crontab -u root -
 
     ${scriptDir}/rclone_mount
 }

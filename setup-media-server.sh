@@ -18,7 +18,8 @@ currentDir=$(getCurrentDir)
 includeDependencies
 logFile=$(basename $0) 
 logFile+=".log"
-outputScriptDir="/usr/scripts"
+templatesDir="templates"
+outputDir="/usr/mediaserver"
 
 
 function main() {
@@ -31,6 +32,10 @@ function main() {
     resetLog ${logFile}
     logTimestamp ${logFile}
 
+    if [[ ! -e ${outputDir} ]];
+    then
+        mkdir -p ${outputDir}
+    fi
 
     printAndLog "Create users, groups and directory structure..."
     mediaGroup="media"
@@ -50,14 +55,16 @@ function main() {
     printAndLog "Configuring mounting point for Google Drive..."
     installMergerfs
     installRClone
-    if [[ ! -e ${outputScriptDir} ]];
-    then
-        mkdir -p ${outputScriptDir}
-    fi
-    mountDrive ${outputScriptDir}
+    mountDrive ${outputDir}
 
-    # TODO: reconcile the mount points and the mapping for each app in docker
-    
+    printAndLog "You will need to use rclone config to set up:"
+    printAndLog "1. oath client id" 
+    printAndLog "2. authenticate with Google Drive"
+    printAndLog "3. passwords for encryption"
+
+    cp "${templateDir}/rclone.conf" /serverapps/rclone/config
+    rclone config --config="/serverapps/rclone/config/rclone.conf"
+
 
     printAndLog "Install and run media server apps..."
 
@@ -73,10 +80,19 @@ function main() {
     nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
     timezone=$(getTimezone)
 
+    # these folders are created by rclone_mount
+    downloadsCompleteDirPath="/mnt/user/local/gdrive_vfs/downloads/complete"
+    downloadsIntermediateDirPath="/mnt/user/local/gdrive_vfs/downloads/intermediate"
+    tvDirPath="/mnt/user/local/gdrive_vfs/tv"
+    moviesDirPath="/mnt/user/local/gdrive_vfs/movies"
+
     mediaComposeFile="media-docker-compose.yaml"
-    prepComposeFile ${mediaComposeFile} ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID}
+
+    cp "${templateDir}/${mediaComposeFile}" ${outputDir}
+    prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
+    printAndLog "Docker compose file is available in ${outputDir}"
     
-    docker compose -f ${mediaComposeFile} up -d
+    docker compose -f "${outputDir}/${mediaComposeFile}" up -d
 
 
     printAndLog "Configure port forwarding for media server apps..."
@@ -125,12 +141,8 @@ function main() {
 
 
     printAndLog "Preparing maintenance scripts..."
-    if [[ ! -e ${outputScriptDir} ]];
-    then
-        mkdir -p ${outputScriptDir}
-    fi
-    prepMaintenanceScripts ${outputScriptDir} ${currentDir}
-    printAndLog "Maintenance scripts are available in ${outputScriptDir}"
+    prepMaintenanceScripts ${templateDir} ${outputDir} ${currentDir}
+    printAndLog "Maintenance scripts are available in ${outputDir}"
 
 
     printAndLog "Setup Done! Log file is located at ${logFile}"
@@ -158,9 +170,7 @@ function createUsersAndDirectoryStructure() {
     useradd -U ${plexUsername} -G ${mediaGroup}
     
     # create folders
-    mkdir /downloads
-    mkdir -p /dvr/movies
-    mkdir -p /dvr/tv
+    mkdir -p /serverapps/rclone/config
     mkdir -p /serverapps/nzbget/config
     mkdir -p /serverapps/sonarr/config
     mkdir -p /serverapps/radarr/config
@@ -168,30 +178,10 @@ function createUsersAndDirectoryStructure() {
     mkdir -p /serverapps/plex/transcode
 
     # set up owners
-    chown -R ${plexUsername}.${mediaGroup} /dvr
-    chown -R ${nzbgetUsername}.${downloaderGroup} /downloads
     chown -R ${nzbgetUsername}.${nzbgetUsername} /serverapps/nzbget
     chown -R ${sonarrUsername}.${sonarrUsername} /serverapps/sonarr
     chown -R ${radarrUsername}.${radarrUsername} /serverapps/radarr
     chown -R ${plexUsername}.${plexUsername} /serverapps/plex
-
-
-    scheduleUpdateOfPermissions ${plexUsername} ${mediaGroup}
-}
-
-
-function scheduleUpdateOfPermissions() {
-    local plexUsername=${1}
-    local plexGroup=${2}
-
-    # finds files which are not 664 permission and fixes them
-    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type f \! -perm 664 -exec chmod 664 {} \;") | crontab -u ${plexUsername} -
-
-    # finds directories which are not 777 and fixes them
-    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type d \! -perm 775 -exec chmod 775 {} \;") | crontab -u ${plexUsername} -
-
-    # finds anything not owned by plex and fixes them
-    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;") | crontab -u ${plexUsername} -
 }
 
 
@@ -209,6 +199,10 @@ function prepComposeFile() {
     local radarrGID=${11}  
     local nzbgetUID=${12}  
     local nzbgetGID=${13}   
+    local downloadsIntermediateDirPath=${14}
+    local downloadsCompleteDirPath=${15}
+    local tvDirPath=${16}
+    local moviesDirPath=${17}
 
     sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
     sed -re "s/_medianetwork_/${mediaNetwork}/g" -i ${composeFile}
@@ -222,6 +216,10 @@ function prepComposeFile() {
     sed -re "s/_radarrgid_/${radarrGID}/g" -i ${composeFile}
     sed -re "s/_nzbgetuid_/${nzbgetUID}/g" -i ${composeFile}
     sed -re "s/_nzbgetgid_/${nzbgetGID}/g" -i ${composeFile}
+    sed -re "s/_downloads_intermediate_/${downloadsIntermediateDirPath}/g" -i ${composeFile}
+    sed -re "s/_downloads_complete_/${downloadsCompleteDirPath}/g" -i ${composeFile}
+    sed -re "s/_tv_/${tvDirPath}/g" -i ${composeFile}
+    sed -re "s/_movies_/${moviesDirPath}/g" -i ${composeFile}
 }
 
 

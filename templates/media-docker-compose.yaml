@@ -16,14 +16,14 @@ services:
     volumes:
       - /serverapps/plex/config:/config 
       - /serverapps/plex/transcode:/transcode
-      - /dvr/tv:/data/tv 
-      - /dvr/movies:/data/movies
+      - _tv_:/data/tv 
+      - _movies_:/data/movies
     environment:
       TZ: _timezone_
       PLEX_CLAIM: _plexclaim_
       PLEX_UID: _plexuid_
       PLEX_GID: _plexgid_
-    restart: unless-stopped
+    restart: no
     networks:
       - media
 
@@ -35,13 +35,13 @@ services:
       - "127.0.0.1:6789:6789"
     volumes:
       - /serverapps/nzbget/config:/config
-      - /serverapps/nzbget:/downloads
-      - /downloads:/completed
+      - _downloads_intermediate_:/downloads
+      - _downloads_complete_:/completed
     environment:
       TZ: _timezone_
       PUID: _nzbgetuid_
       PGID: _nzbgetgid_
-    restart: unless-stopped
+    restart: no
     networks:
       - downloader
 
@@ -54,14 +54,14 @@ services:
       - "127.0.0.1:9898:9898"
     volumes:
       - /serverapps/sonarr/config:/config
-      - /dvr/tv:/tv
-      - /downloads:/downloads
+      - _tv_:/tv
+      - _downloads_intermediate_:/downloads
     environment:
       PUID: _sonarruid_
       PGID: _sonarrgid_
       TZ: _timezone_
       UMASK_SET: 022
-    restart: unless-stopped
+    restart: no
     networks:
       - downloader
 
@@ -75,11 +75,11 @@ services:
       TZ: _timezone_
     volumes:
       - /serverapps/sonarr/config:/config
-      - /path/to/movies:/movies #optional
-      - /path/to/downloadclient-downloads:/downloads #optional
+      - _movies_:/movies #optional
+      - _downloads_intermediate_:/downloads #optional
     ports:
       - "127.0.0.1:7878:7878"
-    restart: unless-stopped
+    restart: no
     networks:
       - downloader
 
