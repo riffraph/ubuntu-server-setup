@@ -23,7 +23,7 @@ services:
       PLEX_CLAIM: _plexclaim_
       PLEX_UID: _plexuid_
       PLEX_GID: _plexgid_
-    restart: no
+    restart: "no"
     networks:
       - media
 
@@ -41,7 +41,7 @@ services:
       TZ: _timezone_
       PUID: _nzbgetuid_
       PGID: _nzbgetgid_
-    restart: no
+    restart: "no"
     networks:
       - downloader
 
@@ -61,7 +61,7 @@ services:
       PGID: _sonarrgid_
       TZ: _timezone_
       UMASK_SET: 022
-    restart: no
+    restart: "no"
     networks:
       - downloader
 
@@ -79,7 +79,7 @@ services:
       - _downloads_intermediate_:/downloads #optional
     ports:
       - "127.0.0.1:7878:7878"
-    restart: no
+    restart: "no"
     networks:
       - downloader
 

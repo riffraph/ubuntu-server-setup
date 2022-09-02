@@ -55,15 +55,17 @@ function main() {
     printAndLog "Configuring mounting point for Google Drive..."
     installMergerfs
     installRClone
-    mountDrive ${outputDir}
 
     printAndLog "You will need to use rclone config to set up:"
     printAndLog "1. oath client id" 
     printAndLog "2. authenticate with Google Drive"
     printAndLog "3. passwords for encryption"
 
-    cp "${templateDir}/rclone.conf" /serverapps/rclone/config
+    cp "${templatesDir}/rclone.conf" /serverapps/rclone/config
     rclone config --config="/serverapps/rclone/config/rclone.conf"
+
+    mountDrive ${outputDir}
+    ln -sd /mnt/user /user
 
 
     printAndLog "Install and run media server apps..."
@@ -81,14 +83,14 @@ function main() {
     timezone=$(getTimezone)
 
     # these folders are created by rclone_mount
-    downloadsCompleteDirPath="/mnt/user/local/gdrive_vfs/downloads/complete"
-    downloadsIntermediateDirPath="/mnt/user/local/gdrive_vfs/downloads/intermediate"
-    tvDirPath="/mnt/user/local/gdrive_vfs/tv"
-    moviesDirPath="/mnt/user/local/gdrive_vfs/movies"
+    downloadsCompleteDirPath="/user/mount_mergerfs/gdrive_vfs/downloads/complete"
+    downloadsIntermediateDirPath="/user/mount_mergerfs/gdrive_vfs/downloads/intermediate"
+    tvDirPath="/user/mount_mergerfs/gdrive_vfs/tv"
+    moviesDirPath="/user/mount_mergerfs/gdrive_vfs/movies"
 
     mediaComposeFile="media-docker-compose.yaml"
 
-    cp "${templateDir}/${mediaComposeFile}" ${outputDir}
+    cp "${templatesDir}/${mediaComposeFile}" ${outputDir}
     prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
     printAndLog "Docker compose file is available in ${outputDir}"
     
@@ -141,7 +143,7 @@ function main() {
 
 
     printAndLog "Preparing maintenance scripts..."
-    prepMaintenanceScripts ${templateDir} ${outputDir} ${currentDir}
+    prepMaintenanceScripts ${templatesDir} ${outputDir} ${currentDir}
     printAndLog "Maintenance scripts are available in ${outputDir}"
 
 
@@ -216,10 +218,10 @@ function prepComposeFile() {
     sed -re "s/_radarrgid_/${radarrGID}/g" -i ${composeFile}
     sed -re "s/_nzbgetuid_/${nzbgetUID}/g" -i ${composeFile}
     sed -re "s/_nzbgetgid_/${nzbgetGID}/g" -i ${composeFile}
-    sed -re "s/_downloads_intermediate_/${downloadsIntermediateDirPath}/g" -i ${composeFile}
-    sed -re "s/_downloads_complete_/${downloadsCompleteDirPath}/g" -i ${composeFile}
-    sed -re "s/_tv_/${tvDirPath}/g" -i ${composeFile}
-    sed -re "s/_movies_/${moviesDirPath}/g" -i ${composeFile}
+    sed -re "s:_downloads_intermediate_:${downloadsIntermediateDirPath}:g" -i ${composeFile}
+    sed -re "s:_downloads_complete_:${downloadsCompleteDirPath}:g" -i ${composeFile}
+    sed -re "s:_tv_:${tvDirPath}:g" -i ${composeFile}
+    sed -re "s:_movies_:${moviesDirPath}:g" -i ${composeFile}
 }
 
 

@@ -46,12 +46,13 @@ function installMergerfs() {
 function prepMountScript() {
     local scriptPath=${1}
     rcloneRemoteName="gdrive_vfs"
-    rcloneMaxSize="170G"
+    rcloneCacheMaxSize="170G"
     dockerApps="nzbget plex sonarr radarr"
 
-    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${file}
-    sed -re "s/RcloneCacheMaxSize=.*$/RcloneCacheMaxSize=\"${rcloneCacheMaxSize}\"/" -i ${file}
-    sed -re "s/DockerStart=.*$/DockerStart=\"${dockerApps}\"/" -i ${file}
+    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${scriptPath}
+    sed -re "s/RcloneCacheMaxSize=.*$/RcloneCacheMaxSize=\"${rcloneCacheMaxSize}\"/" -i ${scriptPath}
+    sed -re "s/DockerStart=.*$/DockerStart=\"${dockerApps}\"/" -i ${scriptPath}
+    sed -re "s:Command2=.*$:Command2=\"--file /serverapps/rclone/config/rclone.conf\":" -i ${scriptPath}
 }
 
 
@@ -60,8 +61,9 @@ function prepUploadScript() {
     rcloneRemoteName="gdrive_vfs"
     rcloneUploadRemoteName="gdrive_vfs"
 
-    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${file}
-    sed -re "s/RcloneUploadRemoteName=.*$/RcloneUploadRemoteName=\"${rcloneUploadRemoteName}\"/" -i ${file}
+    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${scriptPath}
+    sed -re "s/RcloneUploadRemoteName=.*$/RcloneUploadRemoteName=\"${rcloneUploadRemoteName}\"/" -i ${scriptPath}
+    sed -re "s:Command2=.*$:Command2=\"--file /serverapps/rclone/config/rclone.conf\":" -i ${scriptPath}
 }
 
 
