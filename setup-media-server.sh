@@ -52,8 +52,8 @@ function main() {
     echo "2. authenticate with Google Drive"
     echo "3. passwords for encryption"
 
-    cp "${templatesDir}/rclone.conf" /serverapps/rclone/config
-    rclone config --config="/serverapps/rclone/config/rclone.conf"
+    cp "${templatesDir}/rclone.conf" /usr/mediaserver/rclone/config
+    rclone config --config="/usr/mediaserver/rclone/config/rclone.conf"
 
     mountDrive ${outputDir}
     ln -sd /mnt/user /user
@@ -160,18 +160,18 @@ function createUsersAndDirectoryStructure() {
     useradd -U ${plexUsername} -G ${mediaGroup}
     
     # create folders
-    mkdir -p /serverapps/rclone/config
-    mkdir -p /serverapps/nzbget/config
-    mkdir -p /serverapps/sonarr/config
-    mkdir -p /serverapps/radarr/config
-    mkdir -p /serverapps/plex/config
-    mkdir -p /serverapps/plex/transcode
+    mkdir -p /usr/mediaserver/rclone/config
+    mkdir -p /usr/mediaserver/nzbget/config
+    mkdir -p /usr/mediaserver/sonarr/config
+    mkdir -p /usr/mediaserver/radarr/config
+    mkdir -p /usr/mediaserver/plex/config
+    mkdir -p /usr/mediaserver/plex/transcode
 
     # set up owners
-    chown -R ${nzbgetUsername}.${nzbgetUsername} /serverapps/nzbget
-    chown -R ${sonarrUsername}.${sonarrUsername} /serverapps/sonarr
-    chown -R ${radarrUsername}.${radarrUsername} /serverapps/radarr
-    chown -R ${plexUsername}.${plexUsername} /serverapps/plex
+    chown -R ${nzbgetUsername}.${nzbgetUsername} /usr/mediaserver/nzbget
+    chown -R ${sonarrUsername}.${sonarrUsername} /usr/mediaserver/sonarr
+    chown -R ${radarrUsername}.${radarrUsername} /usr/mediaserver/radarr
+    chown -R ${plexUsername}.${plexUsername} /usr/mediaserver/plex
 }
 
 

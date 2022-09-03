@@ -14,8 +14,8 @@ services:
       - "127.0.0.1:32412-32414:32412-32414/udp" 
       - "127.0.0.1:32469:32469/tcp" 
     volumes:
-      - /serverapps/plex/config:/config 
-      - /serverapps/plex/transcode:/transcode
+      - /usr/mediaserver/plex/config:/config 
+      - /usr/mediaserver/plex/transcode:/transcode
       - _tv_:/data/tv 
       - _movies_:/data/movies
     environment:
@@ -34,7 +34,7 @@ services:
     ports:
       - "127.0.0.1:6789:6789"
     volumes:
-      - /serverapps/nzbget/config:/config
+      - /usr/mediaserver/nzbget/config:/config
       - _downloads_intermediate_:/downloads
       - _downloads_complete_:/completed
     environment:
@@ -53,7 +53,7 @@ services:
       - "127.0.0.1:8989:8989"
       - "127.0.0.1:9898:9898"
     volumes:
-      - /serverapps/sonarr/config:/config
+      - /usr/mediaserver/sonarr/config:/config
       - _tv_:/tv
       - _downloads_intermediate_:/downloads
     environment:
@@ -74,7 +74,7 @@ services:
       PGID: _radarrgid_
       TZ: _timezone_
     volumes:
-      - /serverapps/sonarr/config:/config
+      - /usr/mediaserver/radarr/config:/config
       - _movies_:/movies #optional
       - _downloads_intermediate_:/downloads #optional
     ports:
