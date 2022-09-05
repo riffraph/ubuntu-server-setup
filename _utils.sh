@@ -53,12 +53,6 @@ function getTimezone() {
 }
 
 
-function getContainerIPAddress() {
-    local ipAddress=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${1})
-    echo ${ipAddress}
-}
-
-
 function prepMaintenanceScripts() {
     local sourceDir=${1}
     local destinationDir=${2}

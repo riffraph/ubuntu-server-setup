@@ -134,7 +134,7 @@ function main() {
 
 
     echo "Preparing maintenance scripts..."
-    prepMaintenanceScripts ${templatesDir} ${outputDir} ${currentDir}
+    prepMaintenanceScripts ${templatesDir} ${outputDir} $PWD
     echo "Maintenance scripts are available in ${outputDir}"
 }
 

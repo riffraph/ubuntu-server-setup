@@ -56,6 +56,7 @@ function setupFirewall()
     # Policies are then bound to the respective zones. This is mostly applicable when you want to restrict access to specific ports to specific IPs.
     
     firewall-cmd --permanent --new-zone containers
+    firewall-cmd --permanent --zone=containers --set-target=ACCEPT
 
     firewall-cmd --permanent --new-policy containersToWorld
     firewall-cmd --permanent --policy containersToWorld --add-ingress-zone containers
@@ -167,6 +168,12 @@ function resetForwardPortRule() {
     addForwardPortRule ${policy} ${port} ${proto} ${port} ${toaddr}
 
     firewall-cmd --reload
+}
+
+
+function getContainerIPAddress() {
+    local ipAddress=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${1})
+    echo ${ipAddress}
 }
 
 

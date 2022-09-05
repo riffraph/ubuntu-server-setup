@@ -36,6 +36,7 @@ function main() {
     # get IP addresses for each respective container
     plexAddr=$(getContainerIPAddress "plex")
     sonarrAddr=$(getContainerIPAddress "sonarr")
+    radarrAddr=$(getContainerIPAddress "radarr")
     nzbgetAddr=$(getContainerIPAddress "nzbget")
 
     resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "tcp"
