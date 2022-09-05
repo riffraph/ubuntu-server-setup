@@ -66,18 +66,18 @@ function main() {
     plexUID=$(id -u ${plexUsername})
     plexGID=$(getent group ${mediaGroup} | cut -d: -f3)
     sonarrUID=$(id -u ${sonarrUsername})
-    sonarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
+    sonarrGID=$(getent group ${mediaGroup} | cut -d: -f3)
     radarrUID=$(id -u ${radarrUsername})
-    radarrGID=$(getent group ${downloaderGroup} | cut -d: -f3)
+    radarrGID=$(getent group ${mediaGroup} | cut -d: -f3)
     nzbgetUID=$(id -u ${nzbgetUsername})
     nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
     timezone=$(getTimezone)
 
     # these folders are created by rclone_mount
-    downloadsCompleteDirPath="/user/mount_mergerfs/gdrive_vfs/downloads/complete"
-    downloadsIntermediateDirPath="/user/mount_mergerfs/gdrive_vfs/downloads/intermediate"
-    tvDirPath="/user/mount_mergerfs/gdrive_vfs/tv"
-    moviesDirPath="/user/mount_mergerfs/gdrive_vfs/movies"
+    downloadsCompleteDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/complete"
+    downloadsIntermediateDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/intermediate"
+    tvDirPath="/user/mount_mergerfs/gdrive-vfs/tv"
+    moviesDirPath="/user/mount_mergerfs/gdrive-vfs/movies"
 
     mediaComposeFile="media-docker-compose.yaml"
 
@@ -173,6 +173,22 @@ function createUsersAndDirectoryStructure() {
     chown -R ${radarrUsername}.${radarrUsername} /usr/mediaserver/radarr
     chown -R ${plexUsername}.${plexUsername} /usr/mediaserver/plex
 }
+
+
+function scheduleUpdateOfPermissions() {
+    local plexUsername=${1}
+    local plexGroup=${2}
+
+    # finds files which are not 664 permission and fixes them
+    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type f \! -perm 664 -exec chmod 664 {} \;") | crontab -u ${plexUsername} -
+
+    # finds directories which are not 777 and fixes them
+    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type d \! -perm 775 -exec chmod 775 {} \;") | crontab -u ${plexUsername} -
+
+    # finds anything not owned by plex and fixes them
+    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;") | crontab -u ${plexUsername} -
+}
+
 
 
 function prepComposeFile() {
