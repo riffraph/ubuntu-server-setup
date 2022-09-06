@@ -19,11 +19,12 @@
 # 6. Optional: Use backup directory for rclone sync jobs
 
 # REQUIRED SETTINGS
+RcloneConfig="_rclone_config_"
 RcloneCommand="move" # choose your rclone command e.g. move, copy, sync
-RcloneRemoteName="_remote_name_" # Name of rclone remote mount WITHOUT ':'.
-RcloneUploadRemoteName="_upload_remote_name_" # If you have a second remote created for uploads put it here.  Otherwise use the same remote as RcloneRemoteName.
-LocalFilesShare="_local_files_" # location of the local files without trailing slash you want to rclone to use
+RcloneRemoteName="_rclone_remote_" # Name of rclone remote mount WITHOUT ':'.
+RcloneUploadRemoteName="_rclone_upload_remote_" # If you have a second remote created for uploads put it here.  Otherwise use the same remote as RcloneRemoteName.
 RcloneMountShare="_rclone_files_" # where your rclone mount is located without trailing slash  e.g. /mnt/user/mount_rclone
+LocalFilesShare="_local_files_" # location of the local files without trailing slash you want to rclone to use
 MinimumAge="15m" # sync files suffix ms|s|m|h|d|w|M|y
 ModSort="ascending" # "ascending" oldest files first, "descending" newest files first
 
@@ -168,6 +169,7 @@ fi
 
 # process files
 	rclone $RcloneCommand $LocalFilesLocation $RcloneUploadRemoteName:$BackupRemoteLocation $ServiceAccount $BackupDir \
+	--config=${RcloneConfig} \
 	--user-agent="$RcloneUploadRemoteName" \
 	-vv \
 	--buffer-size 512M \
@@ -191,7 +193,7 @@ fi
 # Delete old files from mount
 if [[  $BackupJob == 'Y' ]]; then
 	echo "$(date "+%d.%m.%Y %T") INFO: *** Removing files older than ${BackupRetention} from $BackupRemoteLocation for ${RcloneUploadRemoteName}."
-	rclone delete --min-age $BackupRetention $RcloneUploadRemoteName:$BackupRemoteDeletedLocation
+	rclone delete --config=${RcloneConfig} --min-age $BackupRetention $RcloneUploadRemoteName:$BackupRemoteDeletedLocation
 fi
 
 #######  Remove Control Files  ##########

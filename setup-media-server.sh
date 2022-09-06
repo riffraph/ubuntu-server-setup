@@ -28,6 +28,8 @@ function main() {
         mkdir -p ${outputDir}
     fi
 
+    cp ${templatesDir}/* ${outputDir}
+
     echo "Create users, groups and directory structure..."
     mediaGroup="media"
     downloaderGroup="downloader"
@@ -52,8 +54,7 @@ function main() {
     echo "2. authenticate with Google Drive"
     echo "3. passwords for encryption"
 
-    cp "${templatesDir}/rclone.conf" /usr/mediaserver/rclone/config
-    rclone config --config="/usr/mediaserver/rclone/config/rclone.conf"
+    rclone config --config="/usr/mediaserver/rclone.conf"
 
     mountDrive ${outputDir}
     ln -sd /mnt/user /user
@@ -82,7 +83,6 @@ function main() {
 
     mediaComposeFile="media-docker-compose.yaml"
 
-    cp "${templatesDir}/${mediaComposeFile}" ${outputDir}
     prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsDirPath} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
     echo "Docker compose file is available in ${outputDir}"
 
@@ -147,7 +147,7 @@ function main() {
 
 
     echo "Preparing maintenance scripts..."
-    prepMaintenanceScripts ${templatesDir} ${outputDir} $PWD
+    prepMaintenanceScripts ${outputDir} $PWD
     echo "Maintenance scripts are available in ${outputDir}"
 }
 

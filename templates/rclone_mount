@@ -17,6 +17,7 @@
 # 4. Optional: include extra folders in mergerfs mount
 
 # REQUIRED SETTINGS
+RcloneConfig="_rclone_config_"
 RcloneRemoteName="_remote_name_" # Name of rclone remote mount WITHOUT ':'. NOTE: Choose your encrypted remote for sensitive data
 RcloneMountShare="_rclone_files_" # where your rclone remote will be located without trailing slash  e.g. /mnt/user/mount_rclone
 RcloneMountDirCacheTime="720h" # rclone dir cache time
@@ -24,7 +25,6 @@ LocalFilesShare="_local_files_" # location of the local files and MountFolders y
 RcloneCacheShare="/mnt/user0/mount_rclone" # location of rclone cache files without trailing slash e.g. /mnt/user0/mount_rclone
 RcloneCacheMaxSize="_rclone_cache_max_" # Maximum size of rclone cache
 RcloneCacheMaxAge="336h" # Maximum age of cache files
-RcloneConfig="_rclone_config_"
 MergerfsMountShare="_merged_files_" # location without trailing slash  e.g. /mnt/user/mount_mergerfs. Enter 'ignore' to disable
 DockerStart="_docker_apps_" # list of dockers, separated by space, to start once mergerfs mount verified. Remember to disable AUTOSTART for dockers added in docker settings page
 MountFolders=\{"downloads/complete,downloads/intermediate,downloads/seeds,movies,tv"\} # comma separated list of folders to create within the mount

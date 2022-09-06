@@ -48,14 +48,18 @@ function prepMountScript() {
     rcloneRemoteName="gdrive-vfs"
     rcloneCacheMaxSize="170G"
     dockerApps="nzbget plex sonarr radarr"
+    rcloneConfigPath="/usr/mediaserver/rclone/config/rclone.conf"
+    rcloneMountPath="/mnt/user/mount_rclone"
+    localFilesPath="/mnt/user/local"
+    mergerfsMountPath="/mnt/user/mount_mergerfs"
 
-    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${scriptPath}
-    sed -re "s/RcloneCacheMaxSize=.*$/RcloneCacheMaxSize=\"${rcloneCacheMaxSize}\"/" -i ${scriptPath}
-    sed -re "s/DockerStart=.*$/DockerStart=\"${dockerApps}\"/" -i ${scriptPath}
-    
-    sed -re "s:Command8=.*$:RCloneConfig=\"--config=/usr/mediaserver/rclone/config/rclone.conf\":" -i ${scriptPath}
-    sed -re "s:rclone mount:rclone mount \$\{RCloneConfig\}:" -i ${scriptPath}
-    sed -re "s:rclone copy:rclone copy \$\{RCloneConfig\}:" -i ${scriptPath}
+    sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
+    sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
+    sed -re "s/_rclone_files_/${rcloneMountPath}/" -i ${scriptPath}
+    sed -re "s/_local_files_/${localFilesPath}/" -i ${scriptPath}
+    sed -re "s/_rclone_cache_max_/${rcloneCacheMaxSize}/" -i ${scriptPath}
+    sed -re "s/_merged_files_/${mergerfsMountPath}/" -i ${scriptPath}
+    sed -re "s/_docker_apps_/${dockerApps}/" -i ${scriptPath}
 }
 
 
@@ -63,32 +67,20 @@ function prepUploadScript() {
     local scriptPath=${1}
     rcloneRemoteName="gdrive-vfs"
     rcloneUploadRemoteName="gdrive-vfs"
-
-    sed -re "s/RcloneRemoteName=.*$/RcloneRemoteName=\"${rcloneRemoteName}\"/" -i ${scriptPath}
-    sed -re "s/RcloneUploadRemoteName=.*$/RcloneUploadRemoteName=\"${rcloneUploadRemoteName}\"/" -i ${scriptPath}
-
-    sed -re "s:Command8=.*$:RCloneConfig=\"--config=/usr/mediaserver/rclone/config/rclone.conf\":" -i ${scriptPath}
-    sed -re "s:rclone delete:rclone delete \$\{RCloneConfig\}:" -i ${scriptPath}
-    sed -re "s:rclone $RcloneCommand:rclone \$RcloneCommand \$\{RCloneConfig\}:" -i ${scriptPath}
+    rcloneConfigPath="/usr/mediaserver/rclone/config/rclone.conf"
+    rcloneMountPath="/mnt/user/mount_rclone"
+    localFilesPath="/mnt/user/local"
+    
+    sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
+    sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
+    sed -re "s/_rclone_upload_remote_/${rcloneUploadRemoteName}/" -i ${scriptPath}
+    sed -re "s/_rclone_files_/${rcloneMountPath}/" -i ${scriptPath}
+    sed -re "s/_local_files_/${localFilesPath}/" -i ${scriptPath}
 }
 
 
 function mountDrive() {
     local scriptDir=${1}
-
-    tmpDir="tmp"
-    if [[ ! -e ${tmpDir} ]]; 
-    then
-        mkdir -p ${tmpDir}
-    fi
-
-    git clone https://github.com/BinsonBuzz/unraid_rclone_mount.git ${tmpDir}
-
-    cp ${tmpDir}/rclone_mount ${scriptDir}
-    cp ${tmpDir}/rclone_unmount ${scriptDir}
-    cp ${tmpDir}/rclone_upload ${scriptDir}
-
-    rm -rf ${tmpDir}
 
     chmod g+x ${scriptDir}/rclone_mount
     chmod g+x ${scriptDir}/rclone_upload

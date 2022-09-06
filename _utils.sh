@@ -54,11 +54,8 @@ function getTimezone() {
 
 
 function prepMaintenanceScripts() {
-    local sourceDir=${1}
-    local destinationDir=${2}
-    local libDir=${3}
-
-    cp ${sourceDir}/*.sh ${destinationDir}
+    local destinationDir=${1}
+    local libDir=${2}
 
     for file in ${destinationDir}/*.sh;
     do
