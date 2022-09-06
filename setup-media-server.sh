@@ -70,11 +70,12 @@ function main() {
     radarrUID=$(id -u ${radarrUsername})
     radarrGID=$(getent group ${mediaGroup} | cut -d: -f3)
     nzbgetUID=$(id -u ${nzbgetUsername})
-    nzbgetGID=$(getent group ${downloaderGroup} | cut -d: -f3)
+    nzbgetGID=$(getent group ${mediaGroup} | cut -d: -f3)
     timezone=$(getTimezone)
 
     # these folders are created by rclone_mount
-    downloadsCompleteDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/complete"
+    downloadsDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/"
+    downloadsCompleteDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/completed"
     downloadsIntermediateDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/intermediate"
     tvDirPath="/user/mount_mergerfs/gdrive-vfs/tv"
     moviesDirPath="/user/mount_mergerfs/gdrive-vfs/movies"
@@ -82,9 +83,21 @@ function main() {
     mediaComposeFile="media-docker-compose.yaml"
 
     cp "${templatesDir}/${mediaComposeFile}" ${outputDir}
-    prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
+    prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsDirPath} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
     echo "Docker compose file is available in ${outputDir}"
-    
+
+    chgrp -R ${mediaGroup} ${downloadsDirPath}
+    chmod g+s ${downloadsDirPath}
+	setfacl -d -R -m g::rwx ${downloadsDirPath}
+
+    chgrp -R ${mediaGroup} ${tvDirPath}
+    chmod g+s ${tvDirPath}
+	setfacl -d -R -m g::rwx ${tvDirPath}
+
+    chgrp -R ${mediaGroup} ${moviesDirPath}
+    chmod g+s ${moviesDirPath}
+	setfacl -d -R -m g::rwx ${moviesDirPath}
+
     docker compose -f "${outputDir}/${mediaComposeFile}" up -d
 
 
@@ -148,7 +161,6 @@ function createUsersAndDirectoryStructure() {
     local nzbgetUsername=${6}
 
     # create groups
-    groupadd -f ${downloaderGroup}
     groupadd -f ${mediaGroup}
 
     # create users
@@ -157,6 +169,7 @@ function createUsersAndDirectoryStructure() {
     useradd -U ${radarrUsername} -G ${downloaderGroup}
     usermod -a -G ${mediaGroup} ${sonarrUsername}
     usermod -a -G ${mediaGroup} ${radarrUsername}
+    usermod -a -G ${mediaGroup} ${nzbgetUsername}
     useradd -U ${plexUsername} -G ${mediaGroup}
     
     # create folders
@@ -175,22 +188,6 @@ function createUsersAndDirectoryStructure() {
 }
 
 
-function scheduleUpdateOfPermissions() {
-    local plexUsername=${1}
-    local plexGroup=${2}
-
-    # finds files which are not 664 permission and fixes them
-    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type f \! -perm 664 -exec chmod 664 {} \;") | crontab -u ${plexUsername} -
-
-    # finds directories which are not 777 and fixes them
-    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr -type d \! -perm 775 -exec chmod 775 {} \;") | crontab -u ${plexUsername} -
-
-    # finds anything not owned by plex and fixes them
-    (crontab -l 2>/dev/null; echo "*/15 * * * * find /dvr \! -user ${plexUsername} -exec chown ${plexUsername}.${plexGroup} {} \;") | crontab -u ${plexUsername} -
-}
-
-
-
 function prepComposeFile() {
     local composeFile=${1}
     local mediaNetwork=${2}
@@ -205,7 +202,7 @@ function prepComposeFile() {
     local radarrGID=${11}  
     local nzbgetUID=${12}  
     local nzbgetGID=${13}   
-    local downloadsIntermediateDirPath=${14}
+    local downloadsDirPath=${14}
     local downloadsCompleteDirPath=${15}
     local tvDirPath=${16}
     local moviesDirPath=${17}
@@ -222,7 +219,7 @@ function prepComposeFile() {
     sed -re "s/_radarrgid_/${radarrGID}/g" -i ${composeFile}
     sed -re "s/_nzbgetuid_/${nzbgetUID}/g" -i ${composeFile}
     sed -re "s/_nzbgetgid_/${nzbgetGID}/g" -i ${composeFile}
-    sed -re "s:_downloads_intermediate_:${downloadsIntermediateDirPath}:g" -i ${composeFile}
+    sed -re "s:_downloads_dir_:${downloadsDirPath}:g" -i ${composeFile}
     sed -re "s:_downloads_complete_:${downloadsCompleteDirPath}:g" -i ${composeFile}
     sed -re "s:_tv_:${tvDirPath}:g" -i ${composeFile}
     sed -re "s:_movies_:${moviesDirPath}:g" -i ${composeFile}

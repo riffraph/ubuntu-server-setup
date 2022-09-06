@@ -35,7 +35,7 @@ services:
       - "127.0.0.1:6789:6789"
     volumes:
       - /usr/mediaserver/nzbget/config:/config
-      - _downloads_intermediate_:/downloads
+      - _downloads_dir_:/downloads
       - _downloads_complete_:/completed
     environment:
       TZ: _timezone_
@@ -55,7 +55,7 @@ services:
     volumes:
       - /usr/mediaserver/sonarr/config:/config
       - _tv_:/tv
-      - _downloads_intermediate_:/downloads
+      - _downloads_dir_:/downloads
     environment:
       PUID: _sonarruid_
       PGID: _sonarrgid_
@@ -76,7 +76,7 @@ services:
     volumes:
       - /usr/mediaserver/radarr/config:/config
       - _movies_:/movies #optional
-      - _downloads_intermediate_:/downloads #optional
+      - _downloads_dir_:/downloads #optional
     ports:
       - "127.0.0.1:7878:7878"
     restart: "no"

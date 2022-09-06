@@ -1,0 +1,260 @@
+#!/bin/bash
+
+# forked from https://github.com/BinsonBuzz/unraid_rclone_mount.git
+
+######################
+#### Mount Script ####
+######################
+## Version 0.96.9.3 ##
+######################
+
+####### EDIT ONLY THESE SETTINGS #######
+
+# INSTRUCTIONS
+# 1. Change the name of the rclone remote and shares to match your setup
+# 2. NOTE: enter RcloneRemoteName WITHOUT ':'
+# 3. Optional: include custom command and bind mount settings
+# 4. Optional: include extra folders in mergerfs mount
+
+# REQUIRED SETTINGS
+RcloneRemoteName="_remote_name_" # Name of rclone remote mount WITHOUT ':'. NOTE: Choose your encrypted remote for sensitive data
+RcloneMountShare="_rclone_files_" # where your rclone remote will be located without trailing slash  e.g. /mnt/user/mount_rclone
+RcloneMountDirCacheTime="720h" # rclone dir cache time
+LocalFilesShare="_local_files_" # location of the local files and MountFolders you want to upload without trailing slash to rclone e.g. /mnt/user/local. Enter 'ignore' to disable
+RcloneCacheShare="/mnt/user0/mount_rclone" # location of rclone cache files without trailing slash e.g. /mnt/user0/mount_rclone
+RcloneCacheMaxSize="_rclone_cache_max_" # Maximum size of rclone cache
+RcloneCacheMaxAge="336h" # Maximum age of cache files
+RcloneConfig="_rclone_config_"
+MergerfsMountShare="_merged_files_" # location without trailing slash  e.g. /mnt/user/mount_mergerfs. Enter 'ignore' to disable
+DockerStart="_docker_apps_" # list of dockers, separated by space, to start once mergerfs mount verified. Remember to disable AUTOSTART for dockers added in docker settings page
+MountFolders=\{"downloads/complete,downloads/intermediate,downloads/seeds,movies,tv"\} # comma separated list of folders to create within the mount
+
+# Note: Again - remember to NOT use ':' in your remote name above
+
+# OPTIONAL SETTINGS
+
+# Add extra paths to mergerfs mount in addition to LocalFilesShare
+LocalFilesShare2="ignore" # without trailing slash e.g. /mnt/user/other__remote_mount/or_other_local_folder.  Enter 'ignore' to disable
+LocalFilesShare3="ignore"
+LocalFilesShare4="ignore"
+
+# Add extra commands or filters
+Command1="--rc"
+Command2=""
+Command3=""
+Command4=""
+Command5=""
+Command6=""
+Command7=""
+Command8=""
+
+CreateBindMount="N" # Y/N. Choose whether to bind traffic to a particular network adapter
+RCloneMountIP="192.168.1.252" # My unraid IP is 172.30.12.2 so I create another similar IP address
+NetworkAdapter="eth0" # choose your network adapter. eth0 recommended
+VirtualIPNumber="2" # creates eth0:x e.g. eth0:1.  I create a unique virtual IP addresses for each mount & upload so I can monitor and traffic shape for each of them
+
+####### END SETTINGS #######
+
+###############################################################################
+#####   DO NOT EDIT ANYTHING BELOW UNLESS YOU KNOW WHAT YOU ARE DOING   #######
+###############################################################################
+
+####### Preparing mount location variables #######
+RcloneMountLocation="$RcloneMountShare/$RcloneRemoteName" # Location for rclone mount
+LocalFilesLocation="$LocalFilesShare/$RcloneRemoteName" # Location for local files to be merged with rclone mount
+MergerFSMountLocation="$MergerfsMountShare/$RcloneRemoteName" # Rclone data folder location
+
+####### create directories for rclone mount and mergerfs mounts #######
+mkdir -p /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName # for script files
+mkdir -p $RcloneCacheShare/cache/$RcloneRemoteName # for cache files
+if [[  $LocalFilesShare == 'ignore' ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: Not creating local folders as requested."
+	LocalFilesLocation="/tmp/$RcloneRemoteName"
+	eval mkdir -p $LocalFilesLocation
+else
+	echo "$(date "+%d.%m.%Y %T") INFO: Creating local folders."
+	eval mkdir -p $LocalFilesLocation/"$MountFolders"
+fi
+mkdir -p $RcloneMountLocation
+
+if [[  $MergerfsMountShare == 'ignore' ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: Not creating MergerFS folders as requested."
+else
+	echo "$(date "+%d.%m.%Y %T") INFO: Creating MergerFS folders."
+	mkdir -p $MergerFSMountLocation
+fi
+
+
+#######  Check if script is already running  #######
+echo "$(date "+%d.%m.%Y %T") INFO: *** Starting mount of remote ${RcloneRemoteName}"
+echo "$(date "+%d.%m.%Y %T") INFO: Checking if this script is already running."
+if [[ -f "/mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running" ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: Exiting script as already running."
+	exit
+else
+	echo "$(date "+%d.%m.%Y %T") INFO: Script not running - proceeding."
+	touch /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+fi
+
+####### Checking have connectivity #######
+
+echo "$(date "+%d.%m.%Y %T") INFO: *** Checking if online"
+ping -q -c2 google.com > /dev/null # -q quiet, -c number of pings to perform
+if [ $? -eq 0 ]; then # ping returns exit status 0 if successful
+	echo "$(date "+%d.%m.%Y %T") PASSED: *** Internet online"
+else
+	echo "$(date "+%d.%m.%Y %T") FAIL: *** No connectivity.  Will try again on next run"
+	rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+	exit
+fi
+
+#######  Create Rclone Mount  #######
+
+# Check If Rclone Mount Already Created
+if [[ -f "$RcloneMountLocation/mountcheck" ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: Success ${RcloneRemoteName} remote is already mounted."
+else
+	echo "$(date "+%d.%m.%Y %T") INFO: Mount not running. Will now mount ${RcloneRemoteName} remote."
+# Creating mountcheck file in case it doesn't already exist
+	echo "$(date "+%d.%m.%Y %T") INFO: Recreating mountcheck file for ${RcloneRemoteName} remote."
+	touch mountcheck
+	rclone copy --config=${RcloneConfig} mountcheck $RcloneRemoteName: -vv --no-traverse
+# Check bind option
+	if [[  $CreateBindMount == 'Y' ]]; then
+		echo "$(date "+%d.%m.%Y %T") INFO: *** Checking if IP address ${RCloneMountIP} already created for remote ${RcloneRemoteName}"
+		ping -q -c2 $RCloneMountIP > /dev/null # -q quiet, -c number of pings to perform
+		if [ $? -eq 0 ]; then # ping returns exit status 0 if successful
+			echo "$(date "+%d.%m.%Y %T") INFO: *** IP address ${RCloneMountIP} already created for remote ${RcloneRemoteName}"
+		else
+			echo "$(date "+%d.%m.%Y %T") INFO: *** Creating IP address ${RCloneMountIP} for remote ${RcloneRemoteName}"
+			ip addr add $RCloneMountIP/24 dev $NetworkAdapter label $NetworkAdapter:$VirtualIPNumber
+		fi
+		echo "$(date "+%d.%m.%Y %T") INFO: *** Created bind mount ${RCloneMountIP} for remote ${RcloneRemoteName}"
+	else
+		RCloneMountIP=""
+		echo "$(date "+%d.%m.%Y %T") INFO: *** Creating mount for remote ${RcloneRemoteName}"
+	fi
+# create rclone mount
+	rclone mount \
+	--config=${RcloneConfig} \
+	$Command1 $Command2 $Command3 $Command4 $Command5 $Command6 $Command7 $Command8 \
+	--allow-other \
+	--umask 000 \
+	--dir-cache-time $RcloneMountDirCacheTime \
+	--attr-timeout $RcloneMountDirCacheTime \
+	--log-level INFO \
+	--poll-interval 10s \
+	--cache-dir=$RcloneCacheShare/cache/$RcloneRemoteName \
+	--drive-pacer-min-sleep 10ms \
+	--drive-pacer-burst 1000 \
+	--vfs-cache-mode full \
+	--vfs-cache-max-size $RcloneCacheMaxSize \
+	--vfs-cache-max-age $RcloneCacheMaxAge \
+	--vfs-read-ahead 1G \
+	--bind=$RCloneMountIP \
+	$RcloneRemoteName: $RcloneMountLocation &
+
+# Check if Mount Successful
+	echo "$(date "+%d.%m.%Y %T") INFO: sleeping for 5 seconds"
+# slight pause to give mount time to finalise
+	sleep 5
+	echo "$(date "+%d.%m.%Y %T") INFO: continuing..."
+	if [[ -f "$RcloneMountLocation/mountcheck" ]]; then
+		echo "$(date "+%d.%m.%Y %T") INFO: Successful mount of ${RcloneRemoteName} mount."
+	else
+		echo "$(date "+%d.%m.%Y %T") CRITICAL: ${RcloneRemoteName} mount failed - please check for problems.  Stopping dockers"
+		docker stop $DockerStart
+		rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+		exit
+	fi
+fi
+
+####### Start MergerFS Mount #######
+
+if [[  $MergerfsMountShare == 'ignore' ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: Not creating mergerfs mount as requested."
+else
+	if [[ -f "$MergerFSMountLocation/mountcheck" ]]; then
+		echo "$(date "+%d.%m.%Y %T") INFO: Check successful, ${RcloneRemoteName} mergerfs mount in place."
+	else
+# check if mergerfs already installed
+		if [[ -f "/bin/mergerfs" ]]; then
+			echo "$(date "+%d.%m.%Y %T") INFO: Mergerfs already installed, proceeding to create mergerfs mount"
+		else
+# Build mergerfs binary
+			echo "$(date "+%d.%m.%Y %T") INFO: Mergerfs not installed - installing now."
+			mkdir -p /mnt/user/appdata/other/rclone/mergerfs
+			docker run -v /mnt/user/appdata/other/rclone/mergerfs:/build --rm trapexit/mergerfs-static-build
+			mv /mnt/user/appdata/other/rclone/mergerfs/mergerfs /bin
+# check if mergerfs install successful
+			echo "$(date "+%d.%m.%Y %T") INFO: *sleeping for 5 seconds"
+			sleep 5
+			if [[ -f "/bin/mergerfs" ]]; then
+				echo "$(date "+%d.%m.%Y %T") INFO: Mergerfs installed successfully, proceeding to create mergerfs mount."
+			else
+				echo "$(date "+%d.%m.%Y %T") ERROR: Mergerfs not installed successfully.  Please check for errors.  Exiting."
+				rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+				exit
+			fi
+		fi
+# Create mergerfs mount
+		echo "$(date "+%d.%m.%Y %T") INFO: Creating ${RcloneRemoteName} mergerfs mount."
+# Extra Mergerfs folders
+		if [[  $LocalFilesShare2 != 'ignore' ]]; then
+			echo "$(date "+%d.%m.%Y %T") INFO: Adding ${LocalFilesShare2} to ${RcloneRemoteName} mergerfs mount."
+			LocalFilesShare2=":$LocalFilesShare2"
+		else
+			LocalFilesShare2=""
+		fi
+		if [[  $LocalFilesShare3 != 'ignore' ]]; then
+			echo "$(date "+%d.%m.%Y %T") INFO: Adding ${LocalFilesShare3} to ${RcloneRemoteName} mergerfs mount."
+			LocalFilesShare3=":$LocalFilesShare3"
+		else
+			LocalFilesShare3=""
+		fi
+		if [[  $LocalFilesShare4 != 'ignore' ]]; then
+			echo "$(date "+%d.%m.%Y %T") INFO: Adding ${LocalFilesShare4} to ${RcloneRemoteName} mergerfs mount."
+			LocalFilesShare4=":$LocalFilesShare4"
+		else
+			LocalFilesShare4=""
+		fi
+# make sure mergerfs mount point is empty
+		mv $MergerFSMountLocation $LocalFilesLocation
+		mkdir -p $MergerFSMountLocation
+
+# mergerfs mount command
+		mergerfs $LocalFilesLocation:$RcloneMountLocation$LocalFilesShare2$LocalFilesShare3$LocalFilesShare4 $MergerFSMountLocation -o rw,async_read=false,use_ino,allow_other,func.getattr=newest,category.action=all,category.create=ff,cache.files=partial,dropcacheonclose=true
+# check if mergerfs mount successful
+		echo "$(date "+%d.%m.%Y %T") INFO: Checking if ${RcloneRemoteName} mergerfs mount created."
+		if [[ -f "$MergerFSMountLocation/mountcheck" ]]; then
+			echo "$(date "+%d.%m.%Y %T") INFO: Check successful, ${RcloneRemoteName} mergerfs mount created."
+		else
+			echo "$(date "+%d.%m.%Y %T") CRITICAL: ${RcloneRemoteName} mergerfs mount failed.  Stopping dockers."
+			docker stop $DockerStart
+			rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+			exit
+		fi
+	fi
+fi
+
+####### Starting Dockers That Need Mergerfs Mount To Work Properly #######
+
+# only start dockers once
+if [[ -f "/mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/dockers_started" ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: dockers already started."
+else
+# Check CA Appdata plugin not backing up or restoring
+	if [ -f "/tmp/ca.backup2/tempFiles/backupInProgress" ] || [ -f "/tmp/ca.backup2/tempFiles/restoreInProgress" ] ; then
+		echo "$(date "+%d.%m.%Y %T") INFO: Appdata Backup plugin running - not starting dockers."
+	else
+		touch /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/dockers_started
+		echo "$(date "+%d.%m.%Y %T") INFO: Starting dockers."
+		docker start $DockerStart
+		_sync_container_ips_script_
+	fi
+fi
+
+rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+echo "$(date "+%d.%m.%Y %T") INFO: Script complete"
+
+exit
