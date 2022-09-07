@@ -66,7 +66,7 @@ ServiceAccountFile="sa_gdrive_upload" # Enter characters before counter in your 
 CountServiceAccounts="15" # Integer number of service accounts to use.
 
 # Is this a backup job
-BackupJob="N" # Y/N. Syncs or Copies files from LocalFilesLocation to BackupRemoteLocation, rather than moving from LocalFilesLocation/RcloneRemoteName
+BackupJob="N" # Y/N. N, syncs files from LocalFilesLocation to BackupRemoteLocation, while Y moves files from LocalFilesLocation to RcloneRemoteName
 BackupRemoteLocation="backup" # choose location on mount for deleted sync files
 BackupRemoteDeletedLocation="backup_deleted" # choose location on mount for deleted sync files
 BackupRetention="90d" # How long to keep deleted sync files suffix ms|s|m|h|d|w|M|y
@@ -193,7 +193,7 @@ fi
 # Delete old files from mount
 if [[  $BackupJob == 'Y' ]]; then
 	echo "$(date "+%d.%m.%Y %T") INFO: *** Removing files older than ${BackupRetention} from $BackupRemoteLocation for ${RcloneUploadRemoteName}."
-	rclone delete --config=${RcloneConfig} --min-age $BackupRetention $RcloneUploadRemoteName:$BackupRemoteDeletedLocation
+	rclone delete --config=${RcloneConfig}--min-age $BackupRetention $RcloneUploadRemoteName:$BackupRemoteDeletedLocation
 fi
 
 #######  Remove Control Files  ##########

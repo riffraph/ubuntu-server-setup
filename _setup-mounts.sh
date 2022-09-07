@@ -48,17 +48,17 @@ function prepMountScript() {
     rcloneRemoteName="gdrive-vfs"
     rcloneCacheMaxSize="170G"
     dockerApps="nzbget plex sonarr radarr"
-    rcloneConfigPath="/usr/mediaserver/rclone/config/rclone.conf"
+    rcloneConfigPath="/usr/mediaserver/rclone.conf"
     rcloneMountPath="/mnt/user/mount_rclone"
     localFilesPath="/mnt/user/local"
     mergerfsMountPath="/mnt/user/mount_mergerfs"
 
     sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
     sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
-    sed -re "s/_rclone_files_/${rcloneMountPath}/" -i ${scriptPath}
-    sed -re "s/_local_files_/${localFilesPath}/" -i ${scriptPath}
+    sed -re "s:_rclone_files_:${rcloneMountPath}:" -i ${scriptPath}
+    sed -re "s:_local_files_:${localFilesPath}:" -i ${scriptPath}
     sed -re "s/_rclone_cache_max_/${rcloneCacheMaxSize}/" -i ${scriptPath}
-    sed -re "s/_merged_files_/${mergerfsMountPath}/" -i ${scriptPath}
+    sed -re "s:_merged_files_:${mergerfsMountPath}:" -i ${scriptPath}
     sed -re "s/_docker_apps_/${dockerApps}/" -i ${scriptPath}
 }
 
@@ -67,15 +67,15 @@ function prepUploadScript() {
     local scriptPath=${1}
     rcloneRemoteName="gdrive-vfs"
     rcloneUploadRemoteName="gdrive-vfs"
-    rcloneConfigPath="/usr/mediaserver/rclone/config/rclone.conf"
+    rcloneConfigPath="/usr/mediaserver/rclone.conf"
     rcloneMountPath="/mnt/user/mount_rclone"
     localFilesPath="/mnt/user/local"
     
     sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
     sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
     sed -re "s/_rclone_upload_remote_/${rcloneUploadRemoteName}/" -i ${scriptPath}
-    sed -re "s/_rclone_files_/${rcloneMountPath}/" -i ${scriptPath}
-    sed -re "s/_local_files_/${localFilesPath}/" -i ${scriptPath}
+    sed -re "s:_rclone_files_:${rcloneMountPath}:" -i ${scriptPath}
+    sed -re "s:_local_files_:${localFilesPath}:" -i ${scriptPath}
 }
 
 
