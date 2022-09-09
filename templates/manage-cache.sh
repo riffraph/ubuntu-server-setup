@@ -2,6 +2,10 @@
 
 # purpose of this script is to manage the files stored locally
 
+# TODO: copy files from remote to local when path is added to the retain list
+
+set -e
+
 RETENTION_PERIOD=_retention_period_ # in days
 RCLONE_CONFIG="_rclone_config_"
 REMOTE_NAME="_rclone_remote_"
@@ -16,10 +20,14 @@ function shouldFileBeRetained() {
     local retainList=${1}
     local file=${2}
 
-    if grep -Fxq "$(dirname ${file})" ${retainList};
+    subDir=$(dirname "${file}" | cut -d'/' -f6-)
+
+    if grep -Fq "${subDir}" ${retainList};
     then
+        # retain
         return 0
     else
+        # do not retain
         return 1
     fi
 }
@@ -30,9 +38,12 @@ function getBackedUpFiles() {
     local category=${1}
     local outputPath=${2}
 
-    rm ${outputPath}
+    if [[ -e ${outputPath} ]];
+    then
+        rm ${outputPath}
+    fi
 
-    rclone check ${LOCAL_FILES}/${REMOTE_NAME}/${category} ${REMOTE_NAME}:${category} \
+    rclone check ${LOCAL_FILES}/${category} ${REMOTE_NAME}:${category} \
             --config=${RCLONE_CONFIG} \
             --one-way \
             --size-only \
@@ -44,31 +55,31 @@ function getBackedUpFiles() {
 for category in ${CATEGORIES//,/ }
 do
     # get the files that have been backed up
+    mkdir -p ${TMP_DIR}
     backedUpFiles="${TMP_DIR}/"${category}-matching-files""
     getBackedUpFiles ${category} ${backedUpFiles}
 
     # find files older than the retention period
-    echo "INFO: finding old files in ${LOCAL_FILES}/${category}"
-    oldFiles=$(find ${LOCAL_FILES}/${category} -mtime +${RETENTION_DAYS} -print0)
+    oldFiles=$(find ${LOCAL_FILES}/${category} -type f -mtime "+${RETENTION_PERIOD}" -print)
 
     # check each file to see if in retain list
-    for file in oldFiles;
+    while read -r file;
     do
         # check if the file has been backed up
-        if grep -Fxq "${file}" ${backedUpFiles};
+        if grep -Fq "$(basename "${file}")" ${backedUpFiles};
         then
             # check if the file should be retained
-            if ! shouldFileBeRetained ${RETAIN_LIST} ${file};
+            if ! shouldFileBeRetained ${RETAIN_LIST} "${file}";
             then
-                echo "rm ${file}"
+                rm "${file}"
 
-                # remove the directory if empty 
-                dir=$(dirname ${file})
-                if [ -z "$(ls -A ${dir})" ]; 
+                # remove the directory if empty
+                dir=$(dirname "${file}")
+                if [ -z "$(ls -A "${dir}")" ];
                 then
-                    echo "rmdir ${dir}"
+                    rmdir "${dir}"
                 fi
             fi
-        do
-    done
+        fi
+    done <<< ${oldFiles}
 done
