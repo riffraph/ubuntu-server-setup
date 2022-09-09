@@ -48,12 +48,15 @@ function checkIfCached() {
         rm tmp-missing
     done < ${RETAIN_LIST}
 
-    missingFilesCount=$(cat ${missingFilesLog} | wc -l)
-    rm ${missingFilesLog}
-
-    if (( $missingFilesCount > 0 ));
+    if [ -f ${missingFilesLog} ];
     then
-        echo "WARNING: Cache is missing ${missingFilesCount} files"
+        missingFilesCount=$(cat ${missingFilesLog} | wc -l)
+        rm ${missingFilesLog}
+
+        if (( $missingFilesCount > 0 ));
+        then
+            echo "WARNING: Cache is missing ${missingFilesCount} files"
+        fi
     fi
 }
 
@@ -61,7 +64,7 @@ function checkIfCached() {
 function checkDiskUsage() {
     echo "DEBUG: getting disk usage"
     currentSize=$(du -hs /user/local | cut -f 1)
-    echo "${currentSize} of ${MAX_SIZE} is used"
+    echo "${currentSize} of ${LOCAL_MAX_SIZE} is used"
 }
 
 

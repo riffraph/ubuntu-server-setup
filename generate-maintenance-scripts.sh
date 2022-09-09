@@ -36,3 +36,7 @@ prepMountScript ${outputDir}/rclone_mount
 
 cp ${templatesDir}/rclone_upload ${outputDir}
 prepUploadScript ${outputDir}/rclone_upload
+
+chmod +x ${outputDir}/get-data-overview.sh
+chmod +x ${outputDir}/rclone_mount
+chmod +x ${outputDir}/rclone_upload

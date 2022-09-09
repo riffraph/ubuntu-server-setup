@@ -46,7 +46,7 @@ function installMergerfs() {
 function prepMountScript() {
     local scriptPath=${1}
     rcloneRemoteName="gdrive-vfs"
-    rcloneCacheMaxSize="170G"
+    rcloneCacheMaxSize="30G"
     dockerApps="nzbget plex sonarr radarr"
     rcloneConfigPath="/usr/mediaserver/rclone.conf"
     rcloneMountPath="/mnt/user/mount_rclone"
