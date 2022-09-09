@@ -31,6 +31,9 @@ mkdir -p ${outputDir}
 cp ${templatesDir}/get-data-overview.sh ${outputDir}
 prepOverviewScript ${outputDir}/get-data-overview.sh
 
+cp ${templatesDir}/manage-cache.sh ${outputDir}
+prepManageCacheScript ${outputDir}/manage-cache.sh
+
 cp ${templatesDir}/rclone_mount ${outputDir}
 prepMountScript ${outputDir}/rclone_mount
 
@@ -38,5 +41,6 @@ cp ${templatesDir}/rclone_upload ${outputDir}
 prepUploadScript ${outputDir}/rclone_upload
 
 chmod +x ${outputDir}/get-data-overview.sh
+chmod +x ${outputDir}/manage-cache.sh
 chmod +x ${outputDir}/rclone_mount
 chmod +x ${outputDir}/rclone_upload
