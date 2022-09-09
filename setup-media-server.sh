@@ -9,7 +9,7 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_setup-mounts.sh"
+    source "${currentDir}/_setup-data.sh"
     source "${currentDir}/_setup-network.sh"
     source "${currentDir}/_utils.sh"
 }
@@ -86,6 +86,9 @@ function main() {
     prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsDirPath} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
     echo "Docker compose file is available in ${outputDir}"
 
+
+    # TODO: change this to set the permissions on /user/local
+    
     chgrp -R ${mediaGroup} ${downloadsDirPath}
     chmod g+s ${downloadsDirPath}
 	setfacl -d -R -m g::rwx ${downloadsDirPath}
