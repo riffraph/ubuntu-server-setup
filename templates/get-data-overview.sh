@@ -1,6 +1,7 @@
-# purpose of this script is to provide an overview on the data that is stored locally and on the remote
-#
 #!/bin/bash
+
+# purpose of this script is to provide an overview on the data that is stored locally and on the remote
+
 
 RCLONE_CONFIG="_rclone_config_"
 REMOTE_NAME="_rclone_remote_"
