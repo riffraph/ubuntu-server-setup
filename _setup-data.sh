@@ -88,12 +88,34 @@ function prepOverviewScript() {
     localFilesPath="/mnt/user/local"
     localMaxSize="140G"
     retainListPath="/mnt/user/appdata/other/retain_list"
+    tmpDirPath="/mnt/user/appdata/other/tmp"
 
     sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
     sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
     sed -re "s:_local_files_:${localFilesPath}:" -i ${scriptPath}
     sed -re "s/_local_max_/${localMaxSize}/" -i ${scriptPath}
     sed -re "s:_retain_list_:${retainListPath}:" -i ${scriptPath}
+    sed -re "s:_tmp_dir_:${tmpDirPath}:" -i ${scriptPath}
+}
+
+
+function prepManageCacheScript() {
+    local scriptPath=${1}
+    retentionPeriod=7
+    rcloneConfigPath="/usr/mediaserver/rclone.conf"
+    rcloneRemoteName="gdrive-vfs"
+    localFilesPath="/mnt/user/local"
+    localMaxSize="140G"
+    retainListPath="/mnt/user/appdata/other/retain_list"
+    tmpDirPath="/mnt/user/appdata/other/tmp"
+
+    sed -re "s/_retention_period_/${retentionPeriod}/" -i ${scriptPath}
+    sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
+    sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
+    sed -re "s:_local_files_:${localFilesPath}:" -i ${scriptPath}
+    sed -re "s/_local_max_/${localMaxSize}/" -i ${scriptPath}
+    sed -re "s:_retain_list_:${retainListPath}:" -i ${scriptPath}
+    sed -re "s:_tmp_dir_:${tmpDirPath}:" -i ${scriptPath}
 }
 
 

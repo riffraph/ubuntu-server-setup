@@ -8,6 +8,7 @@ REMOTE_NAME="_rclone_remote_"
 LOCAL_FILES="_local_files_"
 LOCAL_MAX_SIZE="_local_max_" # set this for the maximum amount of disk space you want the local folder to user. Be aware that you need to also budget for the rclone cache and operating system + apps
 RETAIN_LIST="_retain_list_"
+TMP_DIR="_tmp_dir_"
 
 
 # reconcile difference between the local folder and the remote folder
@@ -20,7 +21,7 @@ function reconcile() {
         --config=${RCLONE_CONFIG} \
         --one-way \
         --size-only \
-        --missing-on-src ${dir}-missing-files \
+        --missing-on-src ${TMP_DIR}/"${dir}-missing-files" \
         > /dev/null 2>&1
 }
 
@@ -43,7 +44,7 @@ function checkIfCached() {
             --config=${RCLONE_CONFIG} \
             --one-way \
             --size-only \
-            --missing-on-dst tmp-missing \
+            --missing-on-dst ${TMP_DIR}/tmp-missing \
             > /dev/null 2>&1
         cat tmp-missing >> ${missingFilesLog}
         rm tmp-missing
