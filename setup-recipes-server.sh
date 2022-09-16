@@ -26,6 +26,7 @@ function main() {
     fi
 
     cp ${templatesDir}/* ${outputDir}
+    cp ${templatesDir}/.env ${outputDir}/
 
     echo "Create users, groups and directory structure..."
     recipesGroup="recipes"
@@ -111,7 +112,7 @@ function prepComposeFile() {
     local mediafilesDir=${4}
     
     sed -re "s:_postgresql_:${postgresqlDir}:g" -i ${composeFile}
-    sed -re "s:_mediafiles_:${mediafilesDir}:g" -i ${composeFile}
+    sed -re "s:_media_files_:${mediafilesDir}:g" -i ${composeFile}
     sed -re "s/_recipesnetwork_/${recipesNetwork}/g" -i ${composeFile}
 }
 
