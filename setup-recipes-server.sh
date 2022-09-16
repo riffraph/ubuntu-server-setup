@@ -75,7 +75,7 @@ function main() {
 
 function createUsersAndDirectoryStructure() {
     local recipesGroup=${1}
-    local recipesUsername=${3}
+    local recipesUsername=${2}
 
     # create groups
     groupadd -f ${recipesGroup}
@@ -99,7 +99,7 @@ function prepComposeFile() {
     local composeFile=${1}
     local recipesNetwork=${2}
     local postgresqlDir=${3}
-    local mediafilesDir=${3}
+    local mediafilesDir=${4}
     
     sed -re "s:_postgresql_:${postgresqlDir}:g" -i ${composeFile}
     sed -re "s:_mediafiles_:${mediafilesDir}:g" -i ${composeFile}
