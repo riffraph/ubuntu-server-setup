@@ -40,7 +40,11 @@ prepMountScript ${outputDir}/rclone_mount
 cp ${templatesDir}/rclone_upload ${outputDir}
 prepUploadScript ${outputDir}/rclone_upload
 
+cp ${templatesDir}/set-permissions.sh ${outputDir}
+prepSetPermissionsScript ${outputDir}/set-permissions.sh
+
 chmod +x ${outputDir}/get-data-overview.sh
 chmod +x ${outputDir}/manage-cache.sh
 chmod +x ${outputDir}/rclone_mount
 chmod +x ${outputDir}/rclone_upload
+chmod +x ${outputDir}/set-permissions.sh

@@ -119,6 +119,20 @@ function prepManageCacheScript() {
 }
 
 
+function prepSetPermissionsScript() {
+    local scriptPath=${1}
+    group="media"
+    downloadsDir="/mnt/user/local/gdrive-vfs/downloads"
+    tvDir="/mnt/user/local/gdrive-vfs/tv"
+    moviesDir="/mnt/user/local/gdrive-vfs/movies"
+
+    sed -re "s/_group_/${group}/" -i ${scriptPath}
+    sed -re "s:_downloads_:${downloadsDir}:" -i ${scriptPath}
+    sed -re "s:_tv_:${tvDir}:" -i ${scriptPath}
+    sed -re "s:_movies_:${moviesDir}:" -i ${scriptPath}
+}
+
+
 function mountDrive() {
     local scriptDir=${1}
 
@@ -132,6 +146,9 @@ function mountDrive() {
     (crontab -l 2>/dev/null; echo "*/10 * * * * ${scriptDir}/rclone_mount") | crontab -u root -
     (crontab -l 2>/dev/null; echo "*/10 * * * * ${scriptDir}/rclone_upload") | crontab -u root -
     (crontab -l 2>/dev/null; echo "@reboot ${scriptDir}/rclone_unmount") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "*/10 * * * * ${scriptDir}/manage-cache.sh") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "*/30 * * * * ${scriptDir}/set-permissions.sh") | crontab -u root -
+
 
     ${scriptDir}/rclone_mount
 }
