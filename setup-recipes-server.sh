@@ -9,7 +9,6 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_setup-data.sh"
     source "${currentDir}/_setup-network.sh"
     source "${currentDir}/_utils.sh"
 }
@@ -30,7 +29,7 @@ function main() {
 
     echo "Create users, groups and directory structure..."
     recipesGroup="recipes"
-    recipesUsername="recipes"
+    recipesUsername="recipesUser"
     createUsersAndDirectoryStructure ${recipesGroup} ${recipesUsername}
 
 
@@ -40,16 +39,23 @@ function main() {
 
     echo "Install and run recipes server apps..."
 
+    read -rp "Enter the secret key for Tandoor Recipes: " secretKey
+    read -rp "Enter the password for the Tandoor Recipes Postgres instance: " postgresPwd
+
+    timezone=$(getTimezone)
+    envSettingsFile=".env"
+    prepEnvironmentSettingsFile "${outputDir}/${envSettingsFile}" ${timezone} ${secretKey} ${postgresPwd}
+
     postgresqlDir="/usr/recipesserver/postgresql/"
     mediafilesDir="/usr/recipesserver/mediafiles/"
 
     recipesComposeFile="recipes-docker-compose.yaml"
 
-    prepComposeFile "${outputDir}/${recipesComposeFile}" ${recipesNetwork} ${postgresqlDir} ${mediafilesDir}
+    prepComposeFile "${outputDir}/${recipesComposeFile}" ${recipesGroup} ${postgresqlDir} ${mediafilesDir}
     echo "Docker compose file is available in ${outputDir}"
 
 
-    docker compose -f "${outputDir}/${mediaComposeFile}" up -d
+    docker compose -f "${outputDir}/${recipesComposeFile}" up -d
 
 
     echo "Configure port forwarding for recipe apps..."
@@ -70,6 +76,9 @@ function main() {
     echo "Preparing maintenance scripts..."
     prepMaintenanceScripts ${outputDir} $PWD
     echo "Maintenance scripts are available in ${outputDir}"
+
+ 
+    (crontab -l 2>/dev/null; echo "*/15 * * * * ${outputDir}/sync-container-ips.sh") | crontab -u root -
 }
 
 
@@ -104,6 +113,18 @@ function prepComposeFile() {
     sed -re "s:_postgresql_:${postgresqlDir}:g" -i ${composeFile}
     sed -re "s:_mediafiles_:${mediafilesDir}:g" -i ${composeFile}
     sed -re "s/_recipesnetwork_/${recipesNetwork}/g" -i ${composeFile}
+}
+
+
+function prepEnvironmentSettingsFile() {
+    local envSettingsFile=${1}
+    local timezone=${2}
+    local secretKey=${3}
+    local postgresPwd=${4}
+    
+    sed -re "s:_timezone_:${timezone}:g" -i ${envSettingsFile}
+    sed -re "s:_secret_key_:${secretKey}:g" -i ${envSettingsFile}
+    sed -re "s:_postgres_pwd_:${postgresPwd}:g" -i ${envSettingsFile}
 }
 
 
