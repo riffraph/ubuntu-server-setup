@@ -1,0 +1,52 @@
+version: "3.5"
+
+services:
+  db_recipes:
+    restart: always
+    image: postgres:11-alpine
+    volumes:
+      - _postgresql_:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    networks:
+      - recipes
+
+  web_recipes:
+    restart: always
+    image: vabene1111/recipes
+    env_file:
+      - ./.env
+    volumes:
+      - staticfiles:/opt/recipes/staticfiles
+      - nginx_config:/opt/recipes/nginx/conf.d
+      - _media_files_:/opt/recipes/mediafiles
+    depends_on:
+      - db_recipes
+    networks:
+      - recipes
+
+  nginx_recipes:
+    container_name: recipes-nginx
+    image: nginx:mainline-alpine
+    hostname: recipes-nginx.server
+    restart: always
+    ports:
+      - "127.0.0.1:100:80"
+    env_file:
+      - ./.env
+    depends_on:
+      - web_recipes
+    volumes:
+      - nginx_config:/etc/nginx/conf.d:ro
+      - staticfiles:/static:ro
+      - _media_files_:/media:ro
+    networks:
+      - recipes
+
+volumes:
+  nginx_config:
+  staticfiles:
+
+networks:
+  recipes:
+    name: _recipesnetwork_

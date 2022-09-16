@@ -16,9 +16,7 @@ function includeDependencies() {
 
 currentDir=$(getCurrentDir)
 includeDependencies
-logFile=$(basename $0) 
-logFile+=".log"
-templatesDir="templates"
+templatesDir="media-server-templates"
 outputDir="/usr/mediaserver"
 
 
