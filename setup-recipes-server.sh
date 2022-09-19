@@ -69,7 +69,7 @@ function main() {
     # get IP addresses for each respective container
     recipesAddr=$(getContainerIPAddress "recipes-nginx")
 
-    resetForwardPortRule "inbound" ${recipesPort} ${recipesAddr} "tcp"
+    resetForwardPortRule "inbound" ${recipesPort} ${recipesAddr} "tcp" 80
 
     addIPToZone "containers" ${recipesAddr}
 
