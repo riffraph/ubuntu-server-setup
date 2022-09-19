@@ -22,9 +22,10 @@ RcloneRemoteName="_rclone_remote_" # Name of rclone remote mount WITHOUT ':'. NO
 RcloneMountShare="_rclone_files_" # where your rclone remote will be located without trailing slash  e.g. /mnt/user/mount_rclone
 RcloneMountDirCacheTime="720h" # rclone dir cache time
 LocalFilesShare="_local_files_" # location of the local files and MountFolders you want to upload without trailing slash to rclone e.g. /mnt/user/local. Enter 'ignore' to disable
+RcloneCacheMode="minimal"
 RcloneCacheShare="/mnt/user0/mount_rclone" # location of rclone cache files without trailing slash e.g. /mnt/user0/mount_rclone
 RcloneCacheMaxSize="_rclone_cache_max_" # Maximum size of rclone cache
-RcloneCacheMaxAge="336h" # Maximum age of cache files
+RcloneCacheMaxAge="_rclone_cache_age_" # Maximum age of cache files
 MergerfsMountShare="_merged_files_" # location without trailing slash  e.g. /mnt/user/mount_mergerfs. 
 DockerStart="_docker_apps_" # list of dockers, separated by space, to start once mergerfs mount verified. Remember to disable AUTOSTART for dockers added in docker settings page
 MountFolders=\{"downloads/complete,downloads/intermediate,downloads/seeds,movies,tv"\} # comma separated list of folders to create within the mount
@@ -143,7 +144,7 @@ else
 	--cache-dir=$RcloneCacheShare/cache/$RcloneRemoteName \
 	--drive-pacer-min-sleep 10ms \
 	--drive-pacer-burst 1000 \
-	--vfs-cache-mode full \
+	--vfs-cache-mode $RcloneCacheMode \
 	--vfs-cache-max-size $RcloneCacheMaxSize \
 	--vfs-cache-max-age $RcloneCacheMaxAge \
 	--vfs-read-ahead 1G \

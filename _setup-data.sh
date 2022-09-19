@@ -47,6 +47,7 @@ function prepMountScript() {
     local scriptPath=${1}
     rcloneRemoteName="gdrive-vfs"
     rcloneCacheMaxSize="30G"
+    rcloneCacheMaxAge="48h"
     dockerApps="nzbget plex sonarr radarr"
     rcloneConfigPath="/usr/mediaserver/rclone.conf"
     rcloneMountPath="/mnt/user/mount_rclone"
@@ -59,6 +60,7 @@ function prepMountScript() {
     sed -re "s:_rclone_files_:${rcloneMountPath}:" -i ${scriptPath}
     sed -re "s:_local_files_:${localFilesPath}:" -i ${scriptPath}
     sed -re "s/_rclone_cache_max_/${rcloneCacheMaxSize}/" -i ${scriptPath}
+    sed -re "s/_rclone_cache_age_/${rcloneCacheMaxAge}/" -i ${scriptPath}
     sed -re "s:_merged_files_:${mergerfsMountPath}:" -i ${scriptPath}
     sed -re "s/_docker_apps_/${dockerApps}/" -i ${scriptPath}
     sed -re "s/_sync_container_ips_script_/${syncContainerIpsScript}/" -i ${scriptPath}
