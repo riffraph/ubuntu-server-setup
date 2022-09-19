@@ -13,13 +13,18 @@ includeDependencies
 
 
 function main() {
-    recipesPort=100
+    externalPort=100
+    internalPort=80    
 
-    recipesAddr=$(getContainerIPAddress "recipes-nginx")
+    recipesProxyAddr=$(getContainerIPAddress "recipes-proxy")
+    recipesWebAddr=$(getContainerIPAddress "recipes-web")
+    recipesDBAddr=$(getContainerIPAddress "recipes-db")
 
-    resetForwardPortRule "inbound" ${recipesPort} ${recipesAddr} "tcp"
+    resetForwardPortRule "inbound" ${externalPort} ${recipesProxyAddr} "tcp" ${internalPort}
 
-    addIPToZone "containers" ${recipesAddr}
+    addIPToZone "containers" ${recipesProxyAddr}
+    addIPToZone "containers" ${recipesWebAddr}
+    addIPToZone "containers" ${recipesDBAddr}
 }
 
 

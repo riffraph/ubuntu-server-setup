@@ -133,6 +133,7 @@ function resetForwardPortRule() {
     local port=${2}
     local toaddr=${3}
     local proto=${4}
+    local toPort=${5}
 
     # parse existing forward port rules 
     # Note, this is only searching on forward port rules defined in policies ... 
@@ -165,7 +166,12 @@ function resetForwardPortRule() {
         fi
     done
 
-    addForwardPortRule ${policy} ${port} ${proto} ${port} ${toaddr}
+    if [ ! -z "${toPort}" ];
+    then
+        addForwardPortRule ${policy} ${port} ${proto} ${port} ${toaddr}
+    else
+        addForwardPortRule ${policy} ${port} ${proto} ${toPort} ${toaddr}
+    fi
 
     firewall-cmd --reload
 }

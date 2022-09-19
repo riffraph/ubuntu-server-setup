@@ -2,6 +2,8 @@ version: "3.5"
 
 services:
   db_recipes:
+    container_name: recipes-db
+    hostname: recipes-db.server
     restart: always
     image: postgres:11-alpine
     volumes:
@@ -12,6 +14,8 @@ services:
       - recipes
 
   web_recipes:
+    container_name: recipes-web
+    hostname: recipes-web.server
     restart: always
     image: vabene1111/recipes
     env_file:
@@ -26,9 +30,9 @@ services:
       - recipes
 
   nginx_recipes:
-    container_name: recipes-nginx
+    container_name: recipes-proxy
+    hostname: recipes-proxy.server
     image: nginx:mainline-alpine
-    hostname: recipes-nginx.server
     restart: always
     ports:
       - "127.0.0.1:100:80"
