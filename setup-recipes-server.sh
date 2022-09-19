@@ -66,7 +66,7 @@ function main() {
         recipesPort=100
     fi
 
-    syncContainerIps recipesPort 80
+    syncContainerIps ${recipesPort} 80
 
     echo "Preparing maintenance scripts..."
     prepMaintenanceScripts ${outputDir} $PWD
