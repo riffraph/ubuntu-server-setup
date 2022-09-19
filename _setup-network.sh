@@ -166,7 +166,7 @@ function resetForwardPortRule() {
         fi
     done
 
-    if ! [[ ${toPort} =~ '^[0-9]+$' ]]; 
+    if ! [[ ${toPort} =~ [[:digit:]]+ ]]; 
     then
         addForwardPortRule ${policy} ${port} ${proto} ${port} ${toaddr}
     else
