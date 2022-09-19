@@ -11,10 +11,9 @@ function includeDependencies() {
 libDir=_libDir_
 includeDependencies
 
-
-function main() {
-    externalPort=100
-    internalPort=80    
+function syncContainerIps() {
+    local externalPort=${1}
+    local internalPort=${2}
 
     recipesProxyAddr=$(getContainerIPAddress "recipes-proxy")
     recipesWebAddr=$(getContainerIPAddress "recipes-web")
@@ -27,5 +26,4 @@ function main() {
     addIPToZone "containers" ${recipesDBAddr}
 }
 
-
-main
+syncContainerIps 100 80

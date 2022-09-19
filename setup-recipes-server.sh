@@ -66,13 +66,7 @@ function main() {
         recipesPort=100
     fi
 
-    # get IP addresses for each respective container
-    recipesAddr=$(getContainerIPAddress "recipes-nginx")
-
-    resetForwardPortRule "inbound" ${recipesPort} ${recipesAddr} "tcp" 80
-
-    addIPToZone "containers" ${recipesAddr}
-
+    syncContainerIps recipesPort 80
 
     echo "Preparing maintenance scripts..."
     prepMaintenanceScripts ${outputDir} $PWD
@@ -126,6 +120,21 @@ function prepEnvironmentSettingsFile() {
     sed -re "s:_timezone_:${timezone}:g" -i ${envSettingsFile}
     sed -re "s:_secret_key_:${secretKey}:g" -i ${envSettingsFile}
     sed -re "s:_postgres_pwd_:${postgresPwd}:g" -i ${envSettingsFile}
+}
+
+function syncContainerIps() {
+    local externalPort=${1}
+    local internalPort=${2}
+
+    recipesProxyAddr=$(getContainerIPAddress "recipes-proxy")
+    recipesWebAddr=$(getContainerIPAddress "recipes-web")
+    recipesDBAddr=$(getContainerIPAddress "recipes-db")
+
+    resetForwardPortRule "inbound" ${externalPort} ${recipesProxyAddr} "tcp" ${internalPort}
+
+    addIPToZone "containers" ${recipesProxyAddr}
+    addIPToZone "containers" ${recipesWebAddr}
+    addIPToZone "containers" ${recipesDBAddr}
 }
 
 
