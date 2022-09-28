@@ -20,13 +20,15 @@ function includeDependencies() {
     source "${currentDir}/_media-scripts.sh"
 }
 
-
 outputDir=${1}
 templatesDir="media-server-templates"
 currentDir=$(getCurrentDir)
 includeDependencies
 
 mkdir -p ${outputDir}
+
+cp ${templatesDir}/sync-container-ips.sh ${outputDir}
+prepMaintenanceScripts ${outputDir} $PWD
 
 cp ${templatesDir}/get-data-overview.sh ${outputDir}
 prepOverviewScript ${outputDir}/get-data-overview.sh
@@ -43,6 +45,7 @@ prepUploadScript ${outputDir}/rclone_upload
 cp ${templatesDir}/set-permissions.sh ${outputDir}
 prepSetPermissionsScript ${outputDir}/set-permissions.sh
 
+chmod +x ${outputDir}/sync-container-ips.sh
 chmod +x ${outputDir}/get-data-overview.sh
 chmod +x ${outputDir}/manage-cache.sh
 chmod +x ${outputDir}/rclone_mount

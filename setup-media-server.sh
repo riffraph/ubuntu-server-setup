@@ -12,12 +12,14 @@ function includeDependencies() {
     source "${currentDir}/_setup-data.sh"
     source "${currentDir}/_setup-network.sh"
     source "${currentDir}/_utils.sh"
+    source "${currentDir}/_media-scripts.sh"
 }
 
 currentDir=$(getCurrentDir)
 includeDependencies
 templatesDir="media-server-templates"
 outputDir="/usr/mediaserver"
+configFile="config"
 
 
 function main() {
@@ -26,7 +28,7 @@ function main() {
         mkdir -p ${outputDir}
     fi
 
-    cp ${templatesDir}/* ${outputDir}
+    ./generate-media-scripts.sh ${outputDir}
 
     echo "Create users, groups and directory structure..."
     mediaGroup="media"
@@ -46,6 +48,8 @@ function main() {
     echo "Configuring mounting point for Google Drive..."
     installMergerfs
     installRClone
+
+    cp ${templatesDir}/rclone* ${outputDir}/
 
     echo "You will need to use rclone config to set up:"
     echo "1. oath client id" 
@@ -80,7 +84,7 @@ function main() {
     moviesDirPath="/user/mount_mergerfs/gdrive-vfs/movies"
 
     mediaComposeFile="media-docker-compose.yaml"
-
+    cp ${templatesDir}/${mediaComposeFile} ${outputDir}/
     prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsDirPath} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
     echo "Docker compose file is available in ${outputDir}"
 
@@ -114,41 +118,31 @@ function main() {
         plexPort=32400
     fi
 
+    echo "plexPort=${plexPort}" > ${outputDir}/${configFile}
+
     read -rp "Enter the port to access Sonarr (default is 8989): " sonarrPort
     if [ -z "${sonarrPort}" ]; then
         sonarrPort=8989
     fi
+
+    echo "sonarrPort=${sonarrPort}" >> ${outputDir}/${configFile}
 
     read -rp "Enter the port to access Radarr (default is 7878): " radarrPort
     if [ -z "${radarrPort}" ]; then
         radarrPort=7878
     fi
 
+    echo "radarrPort=${radarrPort}" >> ${outputDir}/${configFile}
+
     read -rp "Enter the port to access Nzbget (default is 6789): " nzbgetPort
     if [ -z "${nzbgetPort}" ]; then
         nzbgetPort=6789
     fi
 
-    # get IP addresses for each respective container
-    plexAddr=$(getContainerIPAddress "plex")
-    sonarrAddr=$(getContainerIPAddress "sonarr")
-    radarrAddr=$(getContainerIPAddress "radarr")
-    nzbgetAddr=$(getContainerIPAddress "nzbget")
+    echo "nzbgetPort=${nzbgetPort}" >> ${outputDir}/${configFile}
 
-    resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "tcp"
-    resetForwardPortRule "inbound" ${plexPort} ${plexAddr} "udp"
-    resetForwardPortRule "restrInbound" ${sonarrPort} ${sonarrAddr} "tcp"
-    resetForwardPortRule "restrInbound" ${radarrPort} ${radarrAddr} "tcp"
-    resetForwardPortRule "restrInbound" ${nzbgetPort} ${nzbgetAddr} "tcp"
+    ${outputDir}/sync-container-ips.sh 
 
-    addIPToZone "containers" ${plexAddr}
-    addIPToZone "containers" ${sonarrAddr}
-    addIPToZone "containers" ${radarrAddr}
-    addIPToZone "containers" ${nzbgetAddr}
-
-
-    echo "Preparing maintenance scripts..."
-    prepMaintenanceScripts ${outputDir} $PWD
     echo "Maintenance scripts are available in ${outputDir}"
 }
 

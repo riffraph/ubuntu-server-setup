@@ -4,7 +4,6 @@
 
 # TODO: copy files from remote to local when path is added to the retain list
 
-set -e
 
 RETENTION_PERIOD=_retention_period_ # in days
 RCLONE_CONFIG="_rclone_config_"
@@ -72,14 +71,10 @@ do
             if ! shouldFileBeRetained ${RETAIN_LIST} "${file}";
             then
                 rm "${file}"
-
-                # remove the directory if empty
-                dir=$(dirname "${file}")
-                if [ -z "$(ls -A "${dir}")" ];
-                then
-                    rmdir "${dir}"
-                fi
             fi
         fi
     done <<< ${oldFiles}
+
+    # recusively delete folders which do not contain files
+    find ${LOCAL_FILES}/${category} -type d -empty -delete
 done

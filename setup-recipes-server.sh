@@ -18,6 +18,7 @@ currentDir=$(getCurrentDir)
 includeDependencies
 templatesDir="recipes-server-templates"
 outputDir="/usr/recipesserver"
+configFile="config"
 
 
 function main() {
@@ -26,8 +27,7 @@ function main() {
         mkdir -p ${outputDir}
     fi
 
-    cp ${templatesDir}/* ${outputDir}
-    cp ${templatesDir}/.env ${outputDir}/
+    ./generate-recipes-scripts.sh ${outputDir}
 
     echo "Create users, groups and directory structure..."
     recipesGroup="recipes"
@@ -46,13 +46,14 @@ function main() {
 
     timezone=$(getTimezone)
     envSettingsFile=".env"
+    cp ${templatesDir}/${envSettingsFile} ${outputDir}/
     prepEnvironmentSettingsFile "${outputDir}/${envSettingsFile}" ${timezone} ${secretKey} ${postgresPwd}
 
     postgresqlDir="/usr/recipesserver/postgresql/"
     mediafilesDir="/usr/recipesserver/mediafiles/"
 
     recipesComposeFile="recipes-docker-compose.yaml"
-
+    cp ${templatesDir}/${recipesComposeFile} ${outputDir}/
     prepComposeFile "${outputDir}/${recipesComposeFile}" ${recipesGroup} ${postgresqlDir} ${mediafilesDir}
     echo "Docker compose file is available in ${outputDir}"
 
@@ -67,9 +68,7 @@ function main() {
         recipesPort=100
     fi
 
-    echo "recipesPort=${recipesPort}" > ${outputDir}/config
-
-    ./generate-recipes-scripts.sh ${outputDir}
+    echo "recipesPort=${recipesPort}" > ${outputDir}/${configFile}
 
     ${outputDir}/sync-container-ips.sh 
     (crontab -l 2>/dev/null; echo "*/15 * * * * ${outputDir}/sync-container-ips.sh") | crontab -u root -
