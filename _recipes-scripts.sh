@@ -9,3 +9,4 @@ function prepMaintenanceScripts() {
         # update dependency from the script to this folder
         sed -re "s:_libDir_:${libDir}:g" -i ${file}
     done
+}

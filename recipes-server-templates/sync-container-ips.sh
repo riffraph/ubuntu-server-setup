@@ -8,8 +8,9 @@ function includeDependencies() {
     source "${libDir}/_setup-network.sh"
 }
 
+scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 libDir=_libDir_
-configFile="./config"
+configFile="config"
 includeDependencies
 
 function syncContainerIps() {
@@ -27,8 +28,8 @@ function syncContainerIps() {
     addIPToZone "containers" ${recipesDBAddr}
 }
 
-if grep -q "recipesPort=" ${configFile}; then
-    recipesPort=$(grep "recipesPort=" ${configFile} | sed 's/.*=//')
+if grep -q "recipesPort=" ${scriptDir}/${configFile}; then
+    recipesPort=$(grep "recipesPort=" ${scriptDir}/${configFile} | sed 's/.*=//')
 else
     recipesPort=100
 fi

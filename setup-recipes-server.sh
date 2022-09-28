@@ -69,11 +69,10 @@ function main() {
 
     echo "recipesPort=${recipesPort}" > ${outputDir}/config
 
-    generate-recipes-scripts ${outputDir}
+    ./generate-recipes-scripts.sh ${outputDir}
 
     ${outputDir}/sync-container-ips.sh 
     (crontab -l 2>/dev/null; echo "*/15 * * * * ${outputDir}/sync-container-ips.sh") | crontab -u root -
-
 
     echo "Maintenance scripts are available in ${outputDir}"
 }
@@ -122,21 +121,6 @@ function prepEnvironmentSettingsFile() {
     sed -re "s:_timezone_:${timezone}:g" -i ${envSettingsFile}
     sed -re "s:_secret_key_:${secretKey}:g" -i ${envSettingsFile}
     sed -re "s:_postgres_pwd_:${postgresPwd}:g" -i ${envSettingsFile}
-}
-
-function syncContainerIps() {
-    local externalPort=${1}
-    local internalPort=${2}
-
-    recipesProxyAddr=$(getContainerIPAddress "recipes-proxy")
-    recipesWebAddr=$(getContainerIPAddress "recipes-web")
-    recipesDBAddr=$(getContainerIPAddress "recipes-db")
-
-    resetForwardPortRule "inbound" ${externalPort} ${recipesProxyAddr} "tcp" ${internalPort}
-
-    addIPToZone "containers" ${recipesProxyAddr}
-    addIPToZone "containers" ${recipesWebAddr}
-    addIPToZone "containers" ${recipesDBAddr}
 }
 
 

@@ -17,12 +17,12 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_setup-data.sh"
+    source "${currentDir}/_media-scripts.sh"
 }
 
 
 outputDir=${1}
-templatesDir="templates"
+templatesDir="media-server-templates"
 currentDir=$(getCurrentDir)
 includeDependencies
 
