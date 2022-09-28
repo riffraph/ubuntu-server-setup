@@ -11,6 +11,7 @@ function getCurrentDir() {
 function includeDependencies() {
     source "${currentDir}/_setup-network.sh"
     source "${currentDir}/_utils.sh"
+    source "${currentDir}/_recipes-scripts.sh"
 }
 
 currentDir=$(getCurrentDir)
@@ -66,14 +67,15 @@ function main() {
         recipesPort=100
     fi
 
-    syncContainerIps ${recipesPort} 80
+    echo "recipesPort=${recipesPort}" > ${outputDir}/config
 
-    echo "Preparing maintenance scripts..."
-    prepMaintenanceScripts ${outputDir} $PWD
-    echo "Maintenance scripts are available in ${outputDir}"
+    generate-recipes-scripts ${outputDir}
 
- 
+    ${outputDir}/sync-container-ips.sh 
     (crontab -l 2>/dev/null; echo "*/15 * * * * ${outputDir}/sync-container-ips.sh") | crontab -u root -
+
+
+    echo "Maintenance scripts are available in ${outputDir}"
 }
 
 

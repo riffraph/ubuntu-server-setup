@@ -9,6 +9,7 @@ function includeDependencies() {
 }
 
 libDir=_libDir_
+configFile="./config"
 includeDependencies
 
 function syncContainerIps() {
@@ -26,4 +27,10 @@ function syncContainerIps() {
     addIPToZone "containers" ${recipesDBAddr}
 }
 
-syncContainerIps 100 80
+if grep -q "recipesPort=" ${configFile}; then
+    recipesPort=$(grep "recipesPort=" ${configFile} | sed 's/.*=//')
+else
+    recipesPort=100
+fi
+
+syncContainerIps ${recipesPort} 80
