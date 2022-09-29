@@ -5,16 +5,6 @@
 ######################
 #### Mount Script ####
 ######################
-## Version 0.96.9.3 ##
-######################
-
-####### EDIT ONLY THESE SETTINGS #######
-
-# INSTRUCTIONS
-# 1. Change the name of the rclone remote and shares to match your setup
-# 2. NOTE: enter RcloneRemoteName WITHOUT ':'
-# 3. Optional: include custom command and bind mount settings
-# 4. Optional: include extra folders in mergerfs mount
 
 # REQUIRED SETTINGS
 RcloneConfig="_rclone_config_"
@@ -33,11 +23,6 @@ MountFolders=\{"downloads/complete,downloads/intermediate,downloads/seeds,movies
 # Note: Again - remember to NOT use ':' in your remote name above
 
 # OPTIONAL SETTINGS
-
-# Add extra paths to mergerfs mount in addition to LocalFilesShare
-LocalFilesShare2="ignore" # without trailing slash e.g. /mnt/user/other__remote_mount/or_other_local_folder.  Enter 'ignore' to disable
-LocalFilesShare3="ignore"
-LocalFilesShare4="ignore"
 
 # Add extra commands or filters
 Command1="--rc"
@@ -131,6 +116,7 @@ else
 		RCloneMountIP=""
 		echo "$(date "+%d.%m.%Y %T") INFO: *** Creating mount for remote ${RcloneRemoteName}"
 	fi
+
 # create rclone mount
 	rclone mount \
 	--config=${RcloneConfig} \
@@ -176,22 +162,11 @@ else
 	if [[ -f "/bin/mergerfs" ]]; then
 		echo "$(date "+%d.%m.%Y %T") INFO: Mergerfs already installed, proceeding to create mergerfs mount"
 	else
-# Build mergerfs binary
-		echo "$(date "+%d.%m.%Y %T") INFO: Mergerfs not installed - installing now."
-		mkdir -p /mnt/user/appdata/other/rclone/mergerfs
-		docker run -v /mnt/user/appdata/other/rclone/mergerfs:/build --rm trapexit/mergerfs-static-build
-		mv /mnt/user/appdata/other/rclone/mergerfs/mergerfs /bin
-# check if mergerfs install successful
-		echo "$(date "+%d.%m.%Y %T") INFO: *sleeping for 5 seconds"
-		sleep 5
-		if [[ -f "/bin/mergerfs" ]]; then
-			echo "$(date "+%d.%m.%Y %T") INFO: Mergerfs installed successfully, proceeding to create mergerfs mount."
-		else
-			echo "$(date "+%d.%m.%Y %T") ERROR: Mergerfs not installed successfully.  Please check for errors.  Exiting."
-			rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
-			exit
-		fi
+		echo "$(date "+%d.%m.%Y %T") ERROR: Mergerfs not installed successfully.  Please check for errors.  Exiting."
+		rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
+		exit
 	fi
+
 # Create mergerfs mount
 	echo "$(date "+%d.%m.%Y %T") INFO: Creating ${RcloneRemoteName} mergerfs mount."
 
@@ -226,15 +201,10 @@ fi
 if [[ -f "/mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/dockers_started" ]]; then
 	echo "$(date "+%d.%m.%Y %T") INFO: dockers already started."
 else
-# Check CA Appdata plugin not backing up or restoring
-	if [ -f "/tmp/ca.backup2/tempFiles/backupInProgress" ] || [ -f "/tmp/ca.backup2/tempFiles/restoreInProgress" ] ; then
-		echo "$(date "+%d.%m.%Y %T") INFO: Appdata Backup plugin running - not starting dockers."
-	else
-		touch /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/dockers_started
-		echo "$(date "+%d.%m.%Y %T") INFO: Starting dockers."
-		docker start $DockerStart
-		_sync_container_ips_script_
-	fi
+	touch /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/dockers_started
+	echo "$(date "+%d.%m.%Y %T") INFO: Starting dockers."
+	docker start $DockerStart
+	_sync_container_ips_script_
 fi
 
 rm /mnt/user/appdata/other/rclone/remotes/$RcloneRemoteName/mount_running
