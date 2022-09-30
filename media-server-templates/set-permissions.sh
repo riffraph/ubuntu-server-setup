@@ -3,10 +3,19 @@
 # purpose of this script is to set the permissions for selected folders
 
 GROUP="_group_"
-DOWNLOADS_DIR="_downloads_"
-TV_DIR="_tv_"
-MOVIES_DIR="_movies_"
+BASE_FOLDER="_base_folder_"
+SUBFOLDERS=downloads,tv,movies
 
-chgrp -R ${GROUP} ${DOWNLOADS_DIR}
-chgrp -R ${GROUP} ${TV_DIR}
-chgrp -R ${GROUP} ${MOVIES_DIR}
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
+for subFolder in ${SUBFOLDERS//,/ }
+do
+    chgrp -R ${GROUP} ${BASE_FOLDER}/${subFolder}
+    chmod g+s ${BASE_FOLDER}/${subFolder}
+    setfacl -d -R -m g::rwx ${BASE_FOLDER}/${subFolder}
+done
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."

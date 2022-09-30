@@ -17,37 +17,35 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_media-scripts.sh"
+    source "${CURRENT_FOLDER}/_media-scripts.sh"
 }
 
-outputDir=${1}
-templatesDir="media-server-templates"
-currentDir=$(getCurrentDir)
+OUTPUT_FOLDER=${1}
+TEMPLATES_FOLDER="media-server-templates"
+CURRENT_FOLDER=$(getCurrentDir)
+DATA_ROOT_FOLDER="/mnt/user" # top level folder to organise the local, remote and merged folders under
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
 includeDependencies
 
-mkdir -p ${outputDir}
+mkdir -p ${OUTPUT_FOLDER}
 
-cp ${templatesDir}/sync-container-ips.sh ${outputDir}
-prepMaintenanceScripts ${outputDir} $PWD
+cp ${TEMPLATES_FOLDER}/sync-container-ips.sh ${OUTPUT_FOLDER}
+prepSyncContainerIpsScript ${OUTPUT_FOLDER} $PWD
 
-cp ${templatesDir}/get-data-overview.sh ${outputDir}
-prepOverviewScript ${outputDir}/get-data-overview.sh
+cp ${TEMPLATES_FOLDER}/set-permissions.sh ${OUTPUT_FOLDER}
+prepSetPermissionsScript ${OUTPUT_FOLDER}/set-permissions.sh ${DATA_ROOT_FOLDER}
 
-cp ${templatesDir}/manage-cache.sh ${outputDir}
-prepManageCacheScript ${outputDir}/manage-cache.sh
+cp ${TEMPLATES_FOLDER}/run-apps.sh ${OUTPUT_FOLDER}
+prepRunAppsScript ${OUTPUT_FOLDER}/run-apps.sh ${DATA_ROOT_FOLDER} ${OUTPUT_FOLDER}/media-docker-compose.yaml ${OUTPUT_FOLDER}/sync-container-ips.sh
 
-cp ${templatesDir}/rclone_mount ${outputDir}
-prepMountScript ${outputDir}/rclone_mount
 
-cp ${templatesDir}/rclone_upload ${outputDir}
-prepUploadScript ${outputDir}/rclone_upload
+chmod +x ${OUTPUT_FOLDER}/sync-container-ips.sh
+chmod +x ${OUTPUT_FOLDER}/set-permissions.sh
+chmod +x ${OUTPUT_FOLDER}/run-apps.sh
 
-cp ${templatesDir}/set-permissions.sh ${outputDir}
-prepSetPermissionsScript ${outputDir}/set-permissions.sh
 
-chmod +x ${outputDir}/sync-container-ips.sh
-chmod +x ${outputDir}/get-data-overview.sh
-chmod +x ${outputDir}/manage-cache.sh
-chmod +x ${outputDir}/rclone_mount
-chmod +x ${outputDir}/rclone_upload
-chmod +x ${outputDir}/set-permissions.sh
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} completed."

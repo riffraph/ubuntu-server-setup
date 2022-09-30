@@ -9,77 +9,86 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_setup-network.sh"
-    source "${currentDir}/_utils.sh"
-    source "${currentDir}/_recipes-scripts.sh"
+    source "${CURRENT_FOLDER}/_setup-network.sh"
+    source "${CURRENT_FOLDER}/_utils.sh"
+    source "${CURRENT_FOLDER}/_recipes-scripts.sh"
 }
 
-currentDir=$(getCurrentDir)
-includeDependencies
-templatesDir="recipes-server-templates"
-outputDir="/usr/recipesserver"
-configFile="config"
+CURRENT_FOLDER=$(getCurrentDir)
+TEMPLATES_FOLDER="recipes-server-templates"
+OUTPUT_FOLDER="/usr/recipesserver"
+CONFIG_FILE="config"
 
+
+includeDependencies
 
 function main() {
-    if [[ ! -e ${outputDir} ]];
+    echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
+    if [[ ! -e ${OUTPUT_FOLDER} ]];
     then
-        mkdir -p ${outputDir}
+        mkdir -p ${OUTPUT_FOLDER}
     fi
 
-    ./generate-recipes-scripts.sh ${outputDir}
+    ./generate-recipes-scripts.sh ${OUTPUT_FOLDER}
 
-    echo "Create users, groups and directory structure..."
+
+    echo "$(date "+%d.%m.%Y %T") INFO: Create users, groups and directory structure."
     recipesGroup="recipes"
     recipesUsername="recipesUser"
-    createUsersAndDirectoryStructure ${recipesGroup} ${recipesUsername}
+    createUsersAndDirectoryStructure ${recipesGroup} ${recipesUsername} ${OUTPUT_FOLDER}
 
 
-    echo "Configuring docker network..."
+    echo "$(date "+%d.%m.%Y %T") INFO: Configuring docker network."
     createDockerNetwork ${recipesGroup}
 
 
-    echo "Install and run recipes server apps..."
+    echo "$(date "+%d.%m.%Y %T") INFO: Install and run recipes server apps."
 
     read -rp "Enter the secret key for Tandoor Recipes: " secretKey
     read -rp "Enter the password for the Tandoor Recipes Postgres instance: " postgresPwd
 
     timezone=$(getTimezone)
     envSettingsFile=".env"
-    cp ${templatesDir}/${envSettingsFile} ${outputDir}/
-    prepEnvironmentSettingsFile "${outputDir}/${envSettingsFile}" ${timezone} ${secretKey} ${postgresPwd}
+    cp ${TEMPLATES_FOLDER}/${envSettingsFile} ${OUTPUT_FOLDER}/
+    prepEnvironmentSettingsFile "${OUTPUT_FOLDER}/${envSettingsFile}" ${timezone} ${secretKey} ${postgresPwd}
 
     postgresqlDir="/usr/recipesserver/postgresql/"
     mediafilesDir="/usr/recipesserver/mediafiles/"
 
     recipesComposeFile="recipes-docker-compose.yaml"
-    cp ${templatesDir}/${recipesComposeFile} ${outputDir}/
-    prepComposeFile "${outputDir}/${recipesComposeFile}" ${recipesGroup} ${postgresqlDir} ${mediafilesDir}
-    echo "Docker compose file is available in ${outputDir}"
+    cp ${TEMPLATES_FOLDER}/${recipesComposeFile} ${OUTPUT_FOLDER}/
+    prepComposeFile "${OUTPUT_FOLDER}/${recipesComposeFile}" ${recipesGroup} ${postgresqlDir} ${mediafilesDir}
+    echo "$(date "+%d.%m.%Y %T") INFO: Docker compose file is available in ${OUTPUT_FOLDER}"
 
 
-    docker compose -f "${outputDir}/${recipesComposeFile}" up -d
+    docker compose -f "${OUTPUT_FOLDER}/${recipesComposeFile}" up -d
 
 
-    echo "Configure port forwarding for recipe apps..."
+    echo "$(date "+%d.%m.%Y %T") INFO: Configure port forwarding for recipe apps."
 
     read -rp "Enter the port to access Tandoor Recipes (default is 100): " recipesPort
     if [ -z "${recipesPort}" ]; then
         recipesPort=100
     fi
 
-    echo "recipesPort=${recipesPort}" > ${outputDir}/${configFile}
+    echo "recipesPort=${recipesPort}" > ${OUTPUT_FOLDER}/${CONFIG_FILE}
 
-    ${outputDir}/sync-container-ips.sh 
-    (crontab -l 2>/dev/null; echo "*/15 * * * * ${outputDir}/sync-container-ips.sh") | crontab -u root -
+    ${OUTPUT_FOLDER}/sync-container-ips.sh 
+    (crontab -l 2>/dev/null; echo "*/30 * * * * ${OUTPUT_FOLDER}/sync-container-ips.sh") | crontab -u root -
 
-    echo "Maintenance scripts are available in ${outputDir}"
+    echo "$(date "+%d.%m.%Y %T") INFO: Maintenance scripts are available in ${OUTPUT_FOLDER}"
+
+
+    echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."
 }
 
 
 function createUsersAndDirectoryStructure() {
     local recipesGroup=${1}
     local recipesUsername=${2}
+    local configFolder=${3}
 
     # create groups
     groupadd -f ${recipesGroup}
@@ -88,14 +97,13 @@ function createUsersAndDirectoryStructure() {
     useradd -U ${recipesUsername} -G ${recipesGroup}
     
     # create folders
-    mkdir -p /usr/recipesserver/postgresql
-    mkdir -p /usr/recipesserver/mediafiles
+    mkdir -p ${configFolder}/postgresql
+    mkdir -p ${configFolder}/mediafiles
 
     # set up owners
-    chown -R ${recipesUsername}.${recipesGroup} /usr/recipesserver/
-
-    chmod g+s /usr/recipesserver/
-	setfacl -d -R -m g::rwx /usr/recipesserver/
+    chown -R ${recipesUsername}.${recipesGroup} ${configFolder}
+    chmod g+s ${configFolder}
+	setfacl -d -R -m g::rwx ${configFolder}
 }
 
 

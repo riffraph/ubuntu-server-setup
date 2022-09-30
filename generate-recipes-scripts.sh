@@ -17,17 +17,25 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_recipes-scripts.sh"
+    source "${CURRENT_FOLDER}/_recipes-scripts.sh"
 }
 
-outputDir=${1}
-templatesDir="recipes-server-templates"
-currentDir=$(getCurrentDir)
+OUTPUT_FOLDER=${1}
+TEMPLATES_FOLDER="recipes-server-templates"
+CURRENT_FOLDER=$(getCurrentDir)
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
 includeDependencies
 
-mkdir -p ${outputDir}
+mkdir -p ${OUTPUT_FOLDER}
 
-cp ${templatesDir}/sync-container-ips.sh ${outputDir}
-prepMaintenanceScripts ${outputDir} $PWD
+cp ${TEMPLATES_FOLDER}/sync-container-ips.sh ${OUTPUT_FOLDER}
+prepSyncContainerIpsScript ${OUTPUT_FOLDER} $PWD
 
-chmod +x ${outputDir}/sync-container-ips.sh
+chmod +x ${OUTPUT_FOLDER}/sync-container-ips.sh
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."

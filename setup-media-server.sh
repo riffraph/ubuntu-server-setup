@@ -9,60 +9,51 @@ function getCurrentDir() {
 }
 
 function includeDependencies() {
-    source "${currentDir}/_setup-data.sh"
-    source "${currentDir}/_setup-network.sh"
-    source "${currentDir}/_utils.sh"
-    source "${currentDir}/_media-scripts.sh"
+    source "${CURRENT_FOLDER}/_setup-data.sh"
+    source "${CURRENT_FOLDER}/_setup-network.sh"
+    source "${CURRENT_FOLDER}/_utils.sh"
+    source "${CURRENT_FOLDER}/_media-scripts.sh"
 }
 
-currentDir=$(getCurrentDir)
-includeDependencies
-templatesDir="media-server-templates"
-outputDir="/usr/mediaserver"
-configFile="config"
+CURRENT_FOLDER=$(getCurrentDir)
+TEMPLATES_FOLDER="media-server-templates"
+OUTPUT_FOLDER="/usr/mediaserver"
+CONFIG_FOLDER="config"
 
+DATA_ROOT_FOLDER="/mnt/user"
+MERGED_FOLDER="${dataRootFolder}/merged"
+
+
+includeDependencies
 
 function main() {
-    if [[ ! -e ${outputDir} ]];
+    echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
+    if [[ ! -e ${OUTPUT_FOLDER} ]];
     then
-        mkdir -p ${outputDir}
+        mkdir -p ${OUTPUT_FOLDER}
     fi
 
-    ./generate-media-scripts.sh ${outputDir}
+    ./generate-media-scripts.sh ${OUTPUT_FOLDER}
 
-    echo "Create users, groups and directory structure..."
+
+    echo "$(date "+%d.%m.%Y %T") INFO: Create users, groups and folder structure."
     mediaGroup="media"
     downloaderGroup="downloader"
     plexUsername="plex"
     sonarrUsername="sonarr"
     radarrUsername="radarr"
     nzbgetUsername="nzbget"
-    createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${radarrUsername} ${nzbgetUsername}
+    createUsersAndDirectoryStructure ${mediaGroup} ${downloaderGroup} ${plexUsername} ${sonarrUsername} ${radarrUsername} ${nzbgetUsername} ${OUTPUT_FOLDER} ${MERGED_FOLDER}
+    ${OUTPUT_FOLDER}/set-permissions.sh
 
-
-    echo "Configuring docker network..."
+    echo "$(date "+%d.%m.%Y %T") INFO: Configuring docker network."
     createDockerNetwork ${mediaGroup}
     createDockerNetwork ${downloaderGroup}
 
 
-    echo "Configuring mounting point for Google Drive..."
-    installMergerfs
-    installRClone
-
-    cp ${templatesDir}/rclone* ${outputDir}/
-
-    echo "You will need to use rclone config to set up:"
-    echo "1. oath client id" 
-    echo "2. authenticate with Google Drive"
-    echo "3. passwords for encryption"
-
-    rclone config --config="/usr/mediaserver/rclone.conf"
-
-    mountDrive ${outputDir}
-    ln -sd /mnt/user /user
-
-
-    echo "Install and run media server apps..."
+    echo "$(date "+%d.%m.%Y %T") INFO: Install media server apps."
 
     read -rp "Enter your Plex claim: " plexClaim
 
@@ -76,37 +67,17 @@ function main() {
     nzbgetGID=$(getent group ${mediaGroup} | cut -d: -f3)
     timezone=$(getTimezone)
 
-    # these folders are created by rclone_mount
-    downloadsDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/"
-    downloadsCompleteDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/completed"
-    downloadsIntermediateDirPath="/user/mount_mergerfs/gdrive-vfs/downloads/intermediate"
-    tvDirPath="/user/mount_mergerfs/gdrive-vfs/tv"
-    moviesDirPath="/user/mount_mergerfs/gdrive-vfs/movies"
-
     mediaComposeFile="media-docker-compose.yaml"
-    cp ${templatesDir}/${mediaComposeFile} ${outputDir}/
-    prepComposeFile "${outputDir}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${downloadsDirPath} ${downloadsIntermediateDirPath} ${downloadsCompleteDirPath} ${tvDirPath} ${moviesDirPath}
-    echo "Docker compose file is available in ${outputDir}"
+    cp ${TEMPLATES_FOLDER}/${mediaComposeFile} ${OUTPUT_FOLDER}/
+    prepComposeFile "${OUTPUT_FOLDER}/${mediaComposeFile}" ${mediaGroup} ${timezone} ${plexUID} ${plexGID} ${plexClaim} ${downloaderGroup} ${sonarrUID} ${sonarrGID} ${radarrUID} ${radarrGID} ${nzbgetUID} ${nzbgetGID} ${MERGED_FOLDER}
+    echo "$(date "+%d.%m.%Y %T") INFO: Docker compose file is available in ${OUTPUT_FOLDER}"
+
+    echo "$(date "+%d.%m.%Y %T") INFO: Note that the applications will be started in the background."
+    (crontab -l 2>/dev/null; echo "*/10 * * * * ${OUTPUT_FOLDER}/run-apps.sh") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "*/30 * * * * ${OUTPUT_FOLDER}/set-permissions.sh") | crontab -u root -
 
 
-    # TODO: change this to set the permissions on /user/local
-    
-    chgrp -R ${mediaGroup} ${downloadsDirPath}
-    chmod g+s ${downloadsDirPath}
-	setfacl -d -R -m g::rwx ${downloadsDirPath}
-
-    chgrp -R ${mediaGroup} ${tvDirPath}
-    chmod g+s ${tvDirPath}
-	setfacl -d -R -m g::rwx ${tvDirPath}
-
-    chgrp -R ${mediaGroup} ${moviesDirPath}
-    chmod g+s ${moviesDirPath}
-	setfacl -d -R -m g::rwx ${moviesDirPath}
-
-    docker compose -f "${outputDir}/${mediaComposeFile}" up -d
-
-
-    echo "Configure port forwarding for media server apps..."
+    echo "$(date "+%d.%m.%Y %T") INFO: Configure port forwarding for media server apps."
 
     read -rp "Enter the IP address to allow access to restricted apps from: " restrictedIPAddr
     if [ -z "${plexPort}" ]; then
@@ -118,32 +89,36 @@ function main() {
         plexPort=32400
     fi
 
-    echo "plexPort=${plexPort}" > ${outputDir}/${configFile}
+    echo "plexPort=${plexPort}" > ${OUTPUT_FOLDER}/${CONFIG_FOLDER}
 
     read -rp "Enter the port to access Sonarr (default is 8989): " sonarrPort
     if [ -z "${sonarrPort}" ]; then
         sonarrPort=8989
     fi
 
-    echo "sonarrPort=${sonarrPort}" >> ${outputDir}/${configFile}
+    echo "sonarrPort=${sonarrPort}" >> ${OUTPUT_FOLDER}/${CONFIG_FOLDER}
 
     read -rp "Enter the port to access Radarr (default is 7878): " radarrPort
     if [ -z "${radarrPort}" ]; then
         radarrPort=7878
     fi
 
-    echo "radarrPort=${radarrPort}" >> ${outputDir}/${configFile}
+    echo "radarrPort=${radarrPort}" >> ${OUTPUT_FOLDER}/${CONFIG_FOLDER}
 
     read -rp "Enter the port to access Nzbget (default is 6789): " nzbgetPort
     if [ -z "${nzbgetPort}" ]; then
         nzbgetPort=6789
     fi
 
-    echo "nzbgetPort=${nzbgetPort}" >> ${outputDir}/${configFile}
+    echo "nzbgetPort=${nzbgetPort}" >> ${OUTPUT_FOLDER}/${CONFIG_FOLDER}
 
-    ${outputDir}/sync-container-ips.sh 
+    ${OUTPUT_FOLDER}/sync-container-ips.sh 
 
-    echo "Maintenance scripts are available in ${outputDir}"
+
+    echo "$(date "+%d.%m.%Y %T") INFO: Maintenance scripts are available in ${OUTPUT_FOLDER}"
+
+
+    echo "$(date "+%d.%m.%Y %T") INFO: Script complete"
 }
 
 
@@ -154,6 +129,8 @@ function createUsersAndDirectoryStructure() {
     local sonarrUsername=${4}
     local radarrUsername=${5}
     local nzbgetUsername=${6}
+    local configFolder=${7}
+    local dataFolder=${8}
 
     # create groups
     groupadd -f ${mediaGroup}
@@ -167,19 +144,23 @@ function createUsersAndDirectoryStructure() {
     usermod -a -G ${mediaGroup} ${nzbgetUsername}
     useradd -U ${plexUsername} -G ${mediaGroup}
     
-    # create folders
-    mkdir -p /usr/mediaserver/rclone/config
-    mkdir -p /usr/mediaserver/nzbget/config
-    mkdir -p /usr/mediaserver/sonarr/config
-    mkdir -p /usr/mediaserver/radarr/config
-    mkdir -p /usr/mediaserver/plex/config
-    mkdir -p /usr/mediaserver/plex/transcode
+    # create folders for the apps
+    mkdir -p ${configFolder}/nzbget/config
+    mkdir -p ${configFolder}/sonarr/config
+    mkdir -p ${configFolder}/radarr/config
+    mkdir -p ${configFolder}/plex/config
+    mkdir -p ${configFolder}/plex/transcode
+
+    # create folders for the data
+    mkdir -p ${dataFolder}/downloads/completed
+    mkdir -p ${dataFolder}/movies
+    mkdir -p ${dataFolder}/tv
 
     # set up owners
-    chown -R ${nzbgetUsername}.${nzbgetUsername} /usr/mediaserver/nzbget
-    chown -R ${sonarrUsername}.${sonarrUsername} /usr/mediaserver/sonarr
-    chown -R ${radarrUsername}.${radarrUsername} /usr/mediaserver/radarr
-    chown -R ${plexUsername}.${plexUsername} /usr/mediaserver/plex
+    chown -R ${nzbgetUsername}.${nzbgetUsername} ${configFolder}/nzbget
+    chown -R ${sonarrUsername}.${sonarrUsername} ${configFolder}/sonarr
+    chown -R ${radarrUsername}.${radarrUsername} ${configFolder}/radarr
+    chown -R ${plexUsername}.${plexUsername} ${configFolder}/plex
 }
 
 
@@ -197,10 +178,13 @@ function prepComposeFile() {
     local radarrGID=${11}  
     local nzbgetUID=${12}  
     local nzbgetGID=${13}   
-    local downloadsDirPath=${14}
-    local downloadsCompleteDirPath=${15}
-    local tvDirPath=${16}
-    local moviesDirPath=${17}
+    local dataFolder=${14}
+
+    downloadsDirPath="${dataFolder}/downloads"
+    downloadsCompleteDirPath="${dataFolder}/downloads/completed"
+    moviesDirPath="${dataFolder}/movies"
+    tvDirPath="${dataFolder}/tv"
+
 
     sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
     sed -re "s/_medianetwork_/${mediaNetwork}/g" -i ${composeFile}

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# purpose of this script is to manage the files stored locally
+# Purpose of this script is to manage the files stored locally
+
+# This script is responsible for removing files from the local folder
 
 # TODO: copy files from remote to local when path is added to the retain list
 
@@ -8,12 +10,13 @@
 RETENTION_PERIOD=_retention_period_ # in days
 RCLONE_CONFIG="_rclone_config_"
 REMOTE_NAME="_rclone_remote_"
-LOCAL_FILES="_local_files_"
+LOCAL_FOLDER="_local_folder_"
 LOCAL_MAX_SIZE="_local_max_" # set this for the maximum amount of disk space you want the local folder to user. Be aware that you need to also budget for the rclone cache and operating system + apps
 RETAIN_LIST="_retain_list_"
 TMP_DIR="_tmp_dir_"
 
-CATEGORIES=tv,movies
+SUBFOLDERS=tv,movies,backup
+
 
 function shouldFileBeRetained() {
     local retainList=${1}
@@ -34,7 +37,7 @@ function shouldFileBeRetained() {
 # get the files that have been backed up, i.e. in local and in remote
 # the list of files are saved in path specified by outputPath
 function getBackedUpFiles() {
-    local category=${1}
+    local subFolder=${1}
     local outputPath=${2}
 
     if [[ -e ${outputPath} ]];
@@ -42,7 +45,7 @@ function getBackedUpFiles() {
         rm ${outputPath}
     fi
 
-    rclone check ${LOCAL_FILES}/${category} ${REMOTE_NAME}:${category} \
+    rclone check ${LOCAL_FOLDER}/${subFolder} ${REMOTE_NAME}:${subFolder} \
             --config=${RCLONE_CONFIG} \
             --one-way \
             --size-only \
@@ -51,15 +54,18 @@ function getBackedUpFiles() {
 }
 
 
-for category in ${CATEGORIES//,/ }
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
+for subFolder in ${SUBFOLDERS//,/ }
 do
     # get the files that have been backed up
     mkdir -p ${TMP_DIR}
-    backedUpFiles="${TMP_DIR}/"${category}-matching-files""
-    getBackedUpFiles ${category} ${backedUpFiles}
+    backedUpFiles="${TMP_DIR}/"${subFolder}-matching-files""
+    getBackedUpFiles ${subFolder} ${backedUpFiles}
 
     # find files older than the retention period
-    oldFiles=$(find ${LOCAL_FILES}/${category} -type f -mtime "+${RETENTION_PERIOD}" -print)
+    oldFiles=$(find ${LOCAL_FOLDER}/${subFolder} -type f -mtime "+${RETENTION_PERIOD}" -print)
 
     # check each file to see if in retain list
     while read -r file;
@@ -76,5 +82,8 @@ do
     done <<< ${oldFiles}
 
     # recusively delete folders which do not contain files
-    find ${LOCAL_FILES}/${category} -type d -empty -delete
+    find ${LOCAL_FOLDER}/${subFolder} -type d -empty -delete
 done
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} completed."

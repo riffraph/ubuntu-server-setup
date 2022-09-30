@@ -5,7 +5,7 @@
 
 RCLONE_CONFIG="_rclone_config_"
 REMOTE_NAME="_rclone_remote_"
-LOCAL_FILES="_local_files_"
+LOCAL_FOLDER="_local_folder_"
 LOCAL_MAX_SIZE="_local_max_" # set this for the maximum amount of disk space you want the local folder to user. Be aware that you need to also budget for the rclone cache and operating system + apps
 RETAIN_LIST="_retain_list_"
 TMP_DIR="_tmp_dir_"
@@ -17,7 +17,7 @@ function reconcile() {
     local dir=${1}
 
     echo "DEBUG: checking backup status for ${dir}"
-    rclone check ${LOCAL_FILES}/${REMOTE_NAME}/${dir} ${REMOTE_NAME}:${dir} \
+    rclone check ${LOCAL_FOLDER}/${dir} ${REMOTE_NAME}:${dir} \
         --config=${RCLONE_CONFIG} \
         --one-way \
         --size-only \
@@ -40,7 +40,7 @@ function checkIfCached() {
     do
         echo "DEBUG: checking if ${line} is cached"
         # check those paths exist on the local
-        rclone check ${REMOTE_NAME}:"${line}" ${LOCAL_FILES}/${REMOTE_NAME}/"${line}" \
+        rclone check ${REMOTE_NAME}:"${line}" ${LOCAL_FOLDER}/"${line}" \
             --config=${RCLONE_CONFIG} \
             --one-way \
             --size-only \

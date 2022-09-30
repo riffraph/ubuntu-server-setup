@@ -5,12 +5,14 @@
 set -e
 
 function includeDependencies() {
-    source "${libDir}/_setup-network.sh"
+    source "${LIB_FOLDER}/_setup-network.sh"
 }
 
-scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-libDir=_libDir_
-configFile="config"
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+LIB_FOLDER="_lib_folder_"
+CONFIG_FILE="config"
+
+
 includeDependencies
 
 function syncContainerIps() {
@@ -28,10 +30,17 @@ function syncContainerIps() {
     addIPToZone "containers" ${recipesDBAddr}
 }
 
-if grep -q "recipesPort=" ${scriptDir}/${configFile}; then
-    recipesPort=$(grep "recipesPort=" ${scriptDir}/${configFile} | sed 's/.*=//')
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
+if grep -q "recipesPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE}; then
+    recipesPort=$(grep "recipesPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE} | sed 's/.*=//')
 else
     recipesPort=100
 fi
 
 syncContainerIps ${recipesPort} 80
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."

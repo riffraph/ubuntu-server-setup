@@ -5,36 +5,40 @@
 set -e
 
 function includeDependencies() {
-    source "${libDir}/_setup-network.sh"
+    source "${LIB_FOLDER}/_setup-network.sh"
 }
 
-scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-libDir=_libDir_
-configFile="config"
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+LIB_FOLDER="_lib_folder_"
+CONFIG_FILE="config"
+
+
 includeDependencies
 
-
 function main() {
-    if grep -q "plexPort=" ${scriptDir}/${configFile}; then
-        plexPort=$(grep "plexPort=" ${scriptDir}/${configFile} | sed 's/.*=//')
+    echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
+    if grep -q "plexPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE}; then
+        plexPort=$(grep "plexPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE} | sed 's/.*=//')
     else
         plexPort=32400
     fi
     
-    if grep -q "sonarrPort=" ${scriptDir}/${configFile}; then
-        sonarrPort=$(grep "sonarrPort=" ${scriptDir}/${configFile} | sed 's/.*=//')
+    if grep -q "sonarrPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE}; then
+        sonarrPort=$(grep "sonarrPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE} | sed 's/.*=//')
     else
         sonarrPort=8989
     fi
 
-    if grep -q "radarrPort=" ${scriptDir}/${configFile}; then
-        radarrPort=$(grep "radarrPort=" ${scriptDir}/${configFile} | sed 's/.*=//')
+    if grep -q "radarrPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE}; then
+        radarrPort=$(grep "radarrPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE} | sed 's/.*=//')
     else
         radarrPort=7878
     fi
 
-    if grep -q "nzbgetPort=" ${scriptDir}/${configFile}; then
-        nzbgetPort=$(grep "nzbgetPort=" ${scriptDir}/${configFile} | sed 's/.*=//')
+    if grep -q "nzbgetPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE}; then
+        nzbgetPort=$(grep "nzbgetPort=" ${SCRIPT_FOLDER}/${CONFIG_FILE} | sed 's/.*=//')
     else
         nzbgetPort=6789
     fi
@@ -57,6 +61,9 @@ function main() {
     addIPToZone "containers" ${sonarrAddr}
     addIPToZone "containers" ${radarrAddr}
     addIPToZone "containers" ${nzbgetAddr}
+
+
+    echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."
 }
 
 
