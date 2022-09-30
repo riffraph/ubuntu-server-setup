@@ -47,11 +47,15 @@ prepManageCacheScript ${OUTPUT_FOLDER}/manage-cache.sh ${DATA_ROOT_FOLDER} ${OUT
 
 cp ${TEMPLATES_FOLDER}/clean-up.sh ${OUTPUT_FOLDER}
 
+cp ${TEMPLATES_FOLDER}/remove-old-backups.sh ${OUTPUT_FOLDER}
+prepRemoveOldBackupScript ${OUTPUT_FOLDER}/remove-old-backups.sh /usr/data-scripts/rclone.conf
+
 chmod +x ${OUTPUT_FOLDER}/data-overview.sh
 chmod +x ${OUTPUT_FOLDER}/mount-remote.sh
 chmod +x ${OUTPUT_FOLDER}/upload-to-remote.sh
 chmod +x ${OUTPUT_FOLDER}/clean-up.sh
 chmod +x ${OUTPUT_FOLDER}/manage-cache.sh
+chmod +x ${OUTPUT_FOLDER}/remove-old-backups.sh
 
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."

@@ -74,6 +74,7 @@ function main() {
     (crontab -l 2>/dev/null; echo "*/15 * * * * ${OUTPUT_FOLDER}/upload-to-remote.sh") | crontab -u root -
     (crontab -l 2>/dev/null; echo "@reboot ${OUTPUT_FOLDER}/clean-up.sh") | crontab -u root -
     (crontab -l 2>/dev/null; echo "*/30 * * * * ${OUTPUT_FOLDER}/manage-cache.sh") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "0 3 * * * ${OUTPUT_FOLDER}/remove-old-backups.sh") | crontab -u root -
 
     ${OUTPUT_FOLDER}/mount-remote.sh
 

@@ -87,3 +87,18 @@ function prepManageCacheScript() {
     sed -re "s/_rclone_remote_/${rcloneRemoteName}/" -i ${scriptPath}
     sed -re "s/_local_max_/${localMaxSize}/" -i ${scriptPath}
 }
+
+# prepares remove-old-backups.sh
+function prepRemoveOldBackupScript() {
+    local scriptPath=${1}
+    local rcloneConfigPath=${2}
+
+    backupFolder="backup"
+    rcloneRemoteName="gdrive-vfs"
+    retentionPeriod=4
+
+    sed -re "s:_backup_folder_:${backupFolder}:g" -i ${scriptPath}
+    sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
+    sed -re "s:_rclone_remote_:${rcloneRemoteName}:g" -i ${scriptPath}
+    sed -re "s:_retention_period_:${retentionPeriod}:g" -i ${scriptPath}
+}
