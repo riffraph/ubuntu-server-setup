@@ -16,11 +16,11 @@ function prepSetPermissionsScript() {
     local scriptPath=${1}
     local dataRootFolder=${2}
 
-    mergedFolder="${dataRootFolder}/merged"
+    localFolder="${dataRootFolder}/local"
     group="media"
 
     sed -re "s/_group_/${group}/" -i ${scriptPath}
-    sed -re "s:_base_folder_:${mergedFolder}:" -i ${scriptPath}
+    sed -re "s:_base_folder_:${localFolder}:" -i ${scriptPath}
 }
 
 # prepare run-apps.sh
