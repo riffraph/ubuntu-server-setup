@@ -62,8 +62,10 @@ function main() {
     prepComposeFile "${OUTPUT_FOLDER}/${recipesComposeFile}" ${recipesGroup} ${postgresqlDir} ${mediafilesDir}
     echo "$(date "+%d.%m.%Y %T") INFO: Docker compose file is available in ${OUTPUT_FOLDER}"
 
-
     docker compose -f "${OUTPUT_FOLDER}/${recipesComposeFile}" up -d
+
+    (crontab -l 2>/dev/null; echo "0 2 * * * ${OUTPUT_FOLDER}/backup.sh") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "0 3 * * * ${OUTPUT_FOLDER}/remove-old-backups.sh") | crontab -u root -
 
 
     echo "$(date "+%d.%m.%Y %T") INFO: Configure port forwarding for recipe apps."
