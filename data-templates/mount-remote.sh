@@ -146,9 +146,9 @@ if [[ -f "${MERGED_FOLDER}/${MOUNT_CHECK_FILE}" ]]; then
 	echo "$(date "+%d.%m.%Y %T") INFO: Check successful, ${RCLONE_REMOTE_NAME} mergerfs mount in operating."
 else
 	echo "$(date "+%d.%m.%Y %T") CRITICAL: ${RCLONE_REMOTE_NAME} mergerfs mount failed."
-	rm ${LOCK_FILE}
-	exit
 fi
+
+rm ${LOCK_FILE}
 
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."

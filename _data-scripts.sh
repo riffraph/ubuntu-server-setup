@@ -7,7 +7,7 @@ function prepMountScript() {
     local rcloneConfigPath=${3}
 
     remoteFolder="${dataRootFolder}/remote"
-    remoteCacheFolder="${dataRootFolder}/remote-cache"
+    remoteCacheFolder="${dataRootFolder}/remote_cache"
     mergedFolder="${dataRootFolder}/merged"
 
     rcloneRemoteName="gdrive-vfs"
@@ -79,7 +79,7 @@ function prepManageCacheScript() {
     rcloneRemoteName="gdrive-vfs"
     localMaxSize="140G"
 
-    sed -re "s:_local_folder_:${localFilesPath}:" -i ${scriptPath}
+    sed -re "s:_local_folder_:${localFolder}:" -i ${scriptPath}
     sed -re "s:_rclone_config_:${rcloneConfigPath}:" -i ${scriptPath}
     sed -re "s:_retain_list_:${retainListPath}:" -i ${scriptPath}
     sed -re "s:_tmp_dir_:${tmpDirPath}:" -i ${scriptPath}

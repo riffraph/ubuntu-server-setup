@@ -16,7 +16,7 @@ TMP_DIR="_tmp_dir_"
 function reconcile() {
     local dir=${1}
 
-    echo "DEBUG: checking backup status for ${dir}"
+    echo "$(date "+%d.%m.%Y %T") INFO: checking backup status for ${dir}"
     rclone check ${LOCAL_FOLDER}/${dir} ${REMOTE_NAME}:${dir} \
         --config=${RCLONE_CONFIG} \
         --one-way \
@@ -38,7 +38,7 @@ function checkIfCached() {
     # read retain list
     while read -r line;
     do
-        echo "DEBUG: checking if ${line} is cached"
+        echo "$(date "+%d.%m.%Y %T") INFO: checking if ${line} is cached"
         # check those paths exist on the local
         rclone check ${REMOTE_NAME}:"${line}" ${LOCAL_FOLDER}/"${line}" \
             --config=${RCLONE_CONFIG} \
@@ -57,15 +57,15 @@ function checkIfCached() {
 
         if (( $missingFilesCount > 0 ));
         then
-            echo "WARNING: Cache is missing ${missingFilesCount} files"
+            echo "$(date "+%d.%m.%Y %T") WARNING: Cache is missing ${missingFilesCount} files"
         fi
     fi
 }
 
 
 function checkDiskUsage() {
-    echo "DEBUG: getting disk usage"
-    currentSize=$(du -hs /user/local | cut -f 1)
+    echo "$(date "+%d.%m.%Y %T") INFO: getting disk usage"
+    currentSize=$(du -hs ${LOCAL_FOLDER} | cut -f 1)
     echo "${currentSize} of ${LOCAL_MAX_SIZE} is used"
 }
 
@@ -82,4 +82,10 @@ function getOverview() {
     checkDiskUsage
 }
 
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
+
+
 getOverview
+
+
+echo "$(date "+%d.%m.%Y %T") INFO: ${0} completed."

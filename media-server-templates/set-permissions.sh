@@ -13,6 +13,7 @@ echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
 for subFolder in ${SUBFOLDERS//,/ }
 do
     chgrp -R ${GROUP} ${BASE_FOLDER}/${subFolder}
+    chmod g+w ${BASE_FOLDER}/${subFolder}
     chmod g+s ${BASE_FOLDER}/${subFolder}
     setfacl -d -R -m g::rwx ${BASE_FOLDER}/${subFolder}
 done

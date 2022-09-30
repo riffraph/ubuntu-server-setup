@@ -6,6 +6,7 @@
 
 # TODO: copy files from remote to local when path is added to the retain list
 
+LOCK_FILE="${SCRIPT_FOLDER}/manage-cache.lock"
 
 RETENTION_PERIOD=_retention_period_ # in days
 RCLONE_CONFIG="_rclone_config_"
@@ -57,6 +58,16 @@ function getBackedUpFiles() {
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."
 
 
+echo "$(date "+%d.%m.%Y %T") INFO: Checking if this script is already running."
+if [[ -f "${LOCK_FILE}" ]]; then
+	echo "$(date "+%d.%m.%Y %T") INFO: Exiting script as already running."
+	exit
+else
+	echo "$(date "+%d.%m.%Y %T") INFO: Script not running - proceeding."
+	touch ${LOCK_FILE}
+fi
+
+
 for subFolder in ${SUBFOLDERS//,/ }
 do
     # get the files that have been backed up
@@ -70,6 +81,11 @@ do
     # check each file to see if in retain list
     while read -r file;
     do
+        if [ -z ${file} ];
+        then
+            continue
+        fi
+
         # check if the file has been backed up
         if grep -Fq "$(basename "${file}")" ${backedUpFiles};
         then
@@ -82,8 +98,10 @@ do
     done <<< ${oldFiles}
 
     # recusively delete folders which do not contain files
-    find ${LOCAL_FOLDER}/${subFolder} -type d -empty -delete
+    find ${LOCAL_FOLDER}/${subFolder}/* -type d -empty -delete
 done
+
+rm ${LOCK_FILE}
 
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} completed."
