@@ -108,7 +108,6 @@ fi
 	--checkers 8 \
 	--transfers 4 \
 	--order-by modtime,$MOD_SORT \
-	--min-age $MINIMUM_AGE \
 	$Command1 $Command2 $Command3 $Command4 $Command5 $Command6 $Command7 $Command8 \
 	--exclude *fuse_hidden* \
 	--exclude *_HIDDEN \
@@ -121,10 +120,9 @@ fi
 	--bind=$RCloneMountIP
 
 
-#######  Remove Control Files  ##########
-
-# remove dummy file
 rm ${LOCK_FILE}
+
+
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} complete."
 
 
