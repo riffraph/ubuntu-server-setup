@@ -18,9 +18,10 @@ mkdir -p ${BACKUP_FOLDER}
 postgresUser=$(grep "POSTGRES_USER=" ${SCRIPT_FOLDER}/${ENVIRONMENT_FILE} | sed 's/.*=//')
 
 echo "$(date "+%d.%m.%Y %T") INFO: Backing up database to ${BACKUP_FOLDER}."
-docker exec -it recipes-db pg_dumpall -U ${postgresUser} -f /var/lib/postgresql/data/dbbackup.sql
+# see the recipes-docker-compose.yaml for how the volumes are mapped
+docker exec -it recipes-db pg_dumpall -U ${postgresUser} -f /var/lib/postgresql/data/dbbackup.sql 
 
-mv postgresql/dbbackup.sql ${BACKUP_FOLDER}/
+mv ${SCRIPT_FOLDER}/postgresql/dbbackup.sql ${BACKUP_FOLDER}/
 
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} completed."
