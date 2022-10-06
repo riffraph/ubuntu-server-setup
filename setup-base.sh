@@ -87,7 +87,7 @@ function main() {
     # Install utility packages
 
     printAndLog "Installing misc packages..." 
-    DEBIAN_FRONTEND=noninteractive apt install -y unzip net-tools nmap acl
+    DEBIAN_FRONTEND=noninteractive apt install -y unzip net-tools nmap acl postfix
     
     printAndLog "-- Installing Docker engine..."
     installDocker
