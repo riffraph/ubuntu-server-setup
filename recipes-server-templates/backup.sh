@@ -23,6 +23,9 @@ docker exec recipes-db pg_dumpall -U ${postgresUser} -f /var/lib/postgresql/data
 
 mv ${SCRIPT_FOLDER}/postgresql/dbbackup.sql ${BACKUP_FOLDER}/
 
+echo "$(date "+%d.%m.%Y %T") INFO: Backing up media files to ${BACKUP_FOLDER}."
+tar -cjvf ${BACKUP_FOLDER}/mediafiles.tar.bz2 -C /usr/recipesserver/mediafiles/recipes .
+
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} completed."
 
