@@ -17,7 +17,7 @@ echo "$(date "+%d.%m.%Y %T") INFO: Looking for backup from ${DATE} on remote."
 if rclone lsd ${RCLONE_REMOTE_NAME}:${BACKUP_FOLDER} --config=${RCLONE_CONFIG} > /dev/null 2>&1 ;
 then
     echo "$(date "+%d.%m.%Y %T") INFO: Removing backup from remote."
-    rclone delete ${RCLONE_REMOTE_NAME}:${BACKUP_FOLDER} --config=${RCLONE_CONFIG}
+    rclone purge ${RCLONE_REMOTE_NAME}:${BACKUP_FOLDER} --config=${RCLONE_CONFIG}
 fi
 
 
