@@ -94,6 +94,10 @@ function main() {
     disableDockerIPTables
 
 
+    echo "$(date "+%d.%m.%Y %T") INFO: Setting up automatic upgrade of packages"
+    (crontab -l 2>/dev/null; echo "0 5 * * * apt update && apt upgrade -yy && apt autoremove") | crontab -u root -
+
+
     cleanup
 
     printAndLog "Setup Done! Log file is located at ${logFile}"

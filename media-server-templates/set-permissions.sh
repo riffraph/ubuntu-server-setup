@@ -4,7 +4,7 @@
 
 GROUP="_group_"
 BASE_FOLDER="_base_folder_"
-SUBFOLDERS=downloads,tv,movies
+SUBFOLDERS=downloads,tv,movies,web
 
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."

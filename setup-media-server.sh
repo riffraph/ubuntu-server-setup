@@ -116,6 +116,12 @@ function main() {
     ${OUTPUT_FOLDER}/sync-container-ips.sh 
 
 
+    echo "$(date "+%d.%m.%Y %T") INFO: Installing youtube-dl"
+    wget https://yt-dl.org/downloads/latest/youtube-dl -O ${OUTPUT_FOLDER}/youtube-dl
+    chmod a+rx ${OUTPUT_FOLDER}/youtube-dl
+    sudo ln -s /usr/bin/python3 /usr/bin/python
+
+
     echo "$(date "+%d.%m.%Y %T") INFO: Maintenance scripts are available in ${OUTPUT_FOLDER}"
 
 
@@ -156,6 +162,7 @@ function createUsersAndDirectoryStructure() {
     mkdir -p ${dataFolder}/downloads/completed
     mkdir -p ${dataFolder}/movies
     mkdir -p ${dataFolder}/tv
+    mkdir -p ${dataFolder}/web
 
     # set up owners
     chown -R ${nzbgetUsername}.${nzbgetUsername} ${configFolder}/nzbget
@@ -185,6 +192,7 @@ function prepComposeFile() {
     downloadsCompleteDirPath="${dataFolder}/downloads/completed"
     moviesDirPath="${dataFolder}/movies"
     tvDirPath="${dataFolder}/tv"
+    webDirPath="${dataFolder}/web"
 
 
     sed -re "s~_timezone_~${timezone}~g" -i ${composeFile}
@@ -203,6 +211,7 @@ function prepComposeFile() {
     sed -re "s:_downloads_complete_:${downloadsCompleteDirPath}:g" -i ${composeFile}
     sed -re "s:_tv_:${tvDirPath}:g" -i ${composeFile}
     sed -re "s:_movies_:${moviesDirPath}:g" -i ${composeFile}
+    sed -re "s:_web_:${webDirPath}:g" -i ${composeFile}
 }
 
 

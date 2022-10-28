@@ -18,6 +18,7 @@ services:
       - /usr/mediaserver/plex/transcode:/transcode
       - _tv_:/data/tv 
       - _movies_:/data/movies
+      - _web_:/data/web
     environment:
       TZ: _timezone_
       PLEX_CLAIM: _plexclaim_

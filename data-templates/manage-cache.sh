@@ -16,7 +16,7 @@ LOCAL_MAX_SIZE="_local_max_" # set this for the maximum amount of disk space you
 RETAIN_LIST="_retain_list_"
 TMP_DIR="_tmp_dir_"
 
-SUBFOLDERS=tv,movies,backup
+SUBFOLDERS=tv,movies,backup,web
 
 
 function shouldFileBeRetained() {
