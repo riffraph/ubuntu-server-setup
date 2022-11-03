@@ -43,7 +43,7 @@ cp ${TEMPLATES_FOLDER}/run-apps.sh ${OUTPUT_FOLDER}
 prepRunAppsScript ${OUTPUT_FOLDER}/run-apps.sh ${DATA_ROOT_FOLDER} ${OUTPUT_FOLDER}/media-docker-compose.yaml ${OUTPUT_FOLDER}/sync-container-ips.sh
 
 cp ${TEMPLATES_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}
-prepUpdateAppsScript ${OUTPUT_FOLDER}/update-apps.sh ${DATA_ROOT_FOLDER} ${OUTPUT_FOLDER}/media-docker-compose.yaml ${OUTPUT_FOLDER}/clean-up.sh
+prepUpdateAppsScript ${OUTPUT_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}/media-docker-compose.yaml ${OUTPUT_FOLDER}/clean-up.sh ${OUTPUT_FOLDER}/run-apps.sh
 
 cp ${TEMPLATES_FOLDER}/clean-up.sh ${OUTPUT_FOLDER}
 
