@@ -27,13 +27,21 @@ else
     exit
 fi
 
-# only start dockers once
 if [[ -f "${LOCK_FILE}" ]]; then
 	echo "$(date "+%d.%m.%Y %T") INFO: dockers already started."
 else
 	touch ${LOCK_FILE}
 	echo "$(date "+%d.%m.%Y %T") INFO: Starting dockers."
-    docker compose -f ${DOCKER_COMPOSE} up -d
+
+    while getopts ":r:" opt; do
+    case "${opt}" in
+            r)
+                ${composeOpts}="--force-recreate"
+                ;;
+        esac
+    done
+
+    docker compose -f ${DOCKER_COMPOSE} up -d ${composeOpts}
 
     # TODO: add logic to retry when a container fails to start
 

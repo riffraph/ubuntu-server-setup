@@ -74,7 +74,9 @@ function main() {
 
     echo "$(date "+%d.%m.%Y %T") INFO: Note that the applications will be started in the background."
     (crontab -l 2>/dev/null; echo "*/10 * * * * ${OUTPUT_FOLDER}/run-apps.sh") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "0 7 * * 1 ${OUTPUT_FOLDER}/update-apps.sh") | crontab -u root -
     (crontab -l 2>/dev/null; echo "*/30 * * * * ${OUTPUT_FOLDER}/set-permissions.sh") | crontab -u root -
+    (crontab -l 2>/dev/null; echo "@reboot ${OUTPUT_FOLDER}/clean-up.sh") | crontab -u root -
     (crontab -l 2>/dev/null; echo "0 3 * * * truncate -s 0 ${MERGED_FOLDER}/downloads/nzbget.log") | crontab -u root -
 
 

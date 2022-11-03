@@ -36,3 +36,15 @@ function prepRunAppsScript() {
     sed -re "s:_sync_container_ips_script_:${syncContainerIpsScript}:" -i ${scriptPath}
     sed -re "s:_docker_compose_:${dockerCompose}:" -i ${scriptPath}
 }
+
+# prepare update-apps.sh
+function prepUpdateAppsScript() {
+    local scriptPath=${1}
+    local dockerCompose=${2}
+    local cleanUpScript=${3}
+    local runAppsScript=${4}
+
+    sed -re "s:_clean_up_script_:${cleanUpScript}:" -i ${scriptPath}
+    sed -re "s:_run_apps_script_:${runAppsScript}:" -i ${scriptPath}
+    sed -re "s:_docker_compose_:${dockerCompose}:" -i ${scriptPath}
+}
