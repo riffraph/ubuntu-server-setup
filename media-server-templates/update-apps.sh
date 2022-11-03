@@ -3,7 +3,6 @@
 # Script to run update docker apps
 
 SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-LOCK_FILE="${SCRIPT_FOLDER}/run-apps.lock"
 
 DOCKER_COMPOSE="_docker_compose_"
 
