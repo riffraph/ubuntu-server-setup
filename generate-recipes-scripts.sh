@@ -38,7 +38,7 @@ cp ${TEMPLATES_FOLDER}/backup.sh ${OUTPUT_FOLDER}
 prepBackupScript ${OUTPUT_FOLDER}/backup.sh /mnt/user/local/backup .env
 
 cp ${TEMPLATES_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}
-prepUpdateAppsScript ${OUTPUT_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}/recipes-docker-compose.yaml
+prepUpdateAppsScript ${OUTPUT_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}/recipes-docker-compose.yaml ${OUTPUT_FOLDER}/sync-container-ips.sh
 
 chmod +x ${OUTPUT_FOLDER}/sync-container-ips.sh
 chmod +x ${OUTPUT_FOLDER}/backup.sh

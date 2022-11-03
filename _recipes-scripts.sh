@@ -26,6 +26,8 @@ function prepBackupScript() {
 function prepUpdateAppsScript() {
     local scriptPath=${1}
     local dockerCompose=${2}
+    local syncContainerIpsScript=${3}
 
     sed -re "s:_docker_compose_:${dockerCompose}:" -i ${scriptPath}
+    sed -re "s:_sync_container_ips_script_:${syncContainerIpsScript}:" -i ${scriptPath}
 }
