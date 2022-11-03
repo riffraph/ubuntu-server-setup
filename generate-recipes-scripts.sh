@@ -37,8 +37,12 @@ prepSyncContainerIpsScript ${OUTPUT_FOLDER} $PWD
 cp ${TEMPLATES_FOLDER}/backup.sh ${OUTPUT_FOLDER}
 prepBackupScript ${OUTPUT_FOLDER}/backup.sh /mnt/user/local/backup .env
 
+cp ${TEMPLATES_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}
+prepUpdateAppsScript ${OUTPUT_FOLDER}/update-apps.sh ${OUTPUT_FOLDER}/recipes-docker-compose.yaml
+
 chmod +x ${OUTPUT_FOLDER}/sync-container-ips.sh
 chmod +x ${OUTPUT_FOLDER}/backup.sh
+chmod +x ${OUTPUT_FOLDER}/update-apps.sh
 
 
 echo "$(date "+%d.%m.%Y %T") INFO: ${0} started."

@@ -21,3 +21,11 @@ function prepBackupScript() {
     sed -re "s:_backup_folder_:${backupFolder}:g" -i ${scriptPath}
     sed -re "s:_env_file_:${environmentFile}:g" -i ${scriptPath}
 }
+
+# prepare update-apps.sh
+function prepUpdateAppsScript() {
+    local scriptPath=${1}
+    local dockerCompose=${2}
+
+    sed -re "s:_docker_compose_:${dockerCompose}:" -i ${scriptPath}
+}
